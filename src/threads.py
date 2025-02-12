@@ -4,6 +4,14 @@ from src.utils import add_n_numbers
 
 def run_thread(num_threads = 4, num_numbers = 10000):
     """
+    Runs the add_n_numbers function using multiple threads and returns the execution time.
+    
+    Parameters:
+    num_threads (int): The number of threads to use. Default is 4.
+    num_numbers (int): The range of numbers to sum. Default is 10000.
+    
+    Returns:
+    float: The execution time in seconds.
     """
     # start threads in a loop
     threads = []
