@@ -31,6 +31,7 @@ def train_and_evaluate(n_estimators, max_features, max_depth, best, X_train, y_t
     if barrier:
         with lock:
             if rmse < best["best_rmse"]:
+                print('updating')
                 best["best_rmse"] = rmse
                 best["best_mape"] = mape
                 best["best_model"] = rf_model
