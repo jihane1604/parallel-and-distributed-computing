@@ -1,25 +1,9 @@
 from src.sequential import run_sequential
 from src.threads import run_thread
 from src.processes import run_process
-from src.utils import prepare_data
-import threading
-
-
-# Define the parameter ranges
-n_estimators_range = [10, 25, 50, 100, 200, 300, 400]
-max_features_range = ['sqrt', 'log2', None]  # None means using all features
-max_depth_range = [1, 2, 5, 10, 20, None]  # None means no limit
-
-# Shared variables
-best_rmse = float('inf')
-best_mape = float('inf')
-best_model = None
-best_parameters = {}
-lock = threading.Lock()
-X_train_filled, X_val_filled, y_train, y_val = prepare_data()
 
 # Measure the total time for each 
-seq_time = run_sequential(n_estimators_range, max_features_range, max_depth_range)
+seq_time = run_sequential()
 print(f"Total time taken sequentially: {seq_time} seconds")
 print('-----')
 
