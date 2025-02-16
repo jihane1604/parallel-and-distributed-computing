@@ -8,17 +8,23 @@ def run_thread(n):
     """
     """
     # start time 
-    star_time = time.time()
+    start_time = time.time()
 
     # Define the parameter ranges
     n_estimators_range = [10, 25, 50, 100, 200, 300, 400]
     max_features_range = ['sqrt', 'log2', None]  # None means using all features
     max_depth_range = [1, 2, 5, 10, 20, None]  # None means no limit
     # define best parameters
-    best_rmse = float('inf')
-    best_mape = float('inf')
-    best_model = None
-    best_params = {}
+    best = {
+        "best_rmse": float('inf'),
+        "best_mape": float('inf'),
+        "best_model": None,
+        "best_params": {
+                'n_estimators': None,
+                'max_features': None,
+                'max_depth': None
+            }
+    }
 
     X_train, X_val, y_train, y_val = split_data()
     
@@ -40,13 +46,13 @@ def run_thread(n):
                 break
             n_estimators, max_features, max_depth = param_queue.get()
             thread = threading.Thread(target=train_and_evaluate, 
-                                      args=(n_estimators, max_features, max_depth, X_train, y_train, X_val, y_val, barrier))
+                                      args=(n_estimators, max_features, max_depth, best, X_train, y_train, X_val, y_val, barrier))
             threads.append(thread)
             thread.start()
         
         for thread in threads:
             thread.join()
-    print(f"Best Parameters: {best_params}, Best RMSE: {best_rmse}, Best MAPE: {best_mape}%")
+    print(f"Best Parameters: {best["best_params"]}, Best RMSE: {best["best_rmse"]}, Best MAPE: {best["best_mape"]}%")
     
     end_time = time.time()
     return end_time - start_time

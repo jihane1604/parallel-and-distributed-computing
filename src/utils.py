@@ -12,12 +12,9 @@ best_model = None
 best_parameters = {}
 
 # function to train and evaluate the random forest model
-def train_and_evaluate(n_estimators, max_features, max_depth, X_train, y_train, X_val, y_val, barrier):
+def train_and_evaluate(n_estimators, max_features, max_depth, best, X_train, y_train, X_val, y_val, barrier):
     """
-    """
-    # global variables
-    global best_rmse, best_mape, best_model, best_parameters
-    
+    """    
     # train the model
     rf_model = RandomForestRegressor(
         n_estimators=n_estimators,
@@ -33,11 +30,11 @@ def train_and_evaluate(n_estimators, max_features, max_depth, X_train, y_train, 
     mape = mean_absolute_percentage_error(y_val, y_val_pred) * 100
     if barrier:
         with lock:
-            if rmse < best_rmse:
-                best_rmse = rmse
-                best_mape = mape
-                best_model = rf_model
-                best_parameters = {
+            if rmse < best["best_rmse"]:
+                best["best_rmse"] = rmse
+                best["best_mape"] = mape
+                best["best_model"] = rf_model
+                best["best_params"] = {
                     'n_estimators': n_estimators,
                     'max_features': max_features,
                     'max_depth': max_depth
@@ -46,11 +43,11 @@ def train_and_evaluate(n_estimators, max_features, max_depth, X_train, y_train, 
         # wait for other threads before continuing
         barrier.wait()
     else:
-        if rmse < best_rmse:
-            best_rmse = rmse
-            best_mape = mape
-            best_model = rf_model
-            best_parameters = {
+        if rmse < best["best_rmse"]:
+            best["best_rmse"] = rmse
+            best["best_mape"] = mape
+            best["best_model"] = rf_model
+            best["best_params"] = {
                 'n_estimators': n_estimators,
                 'max_features': max_features,
                 'max_depth': max_depth
