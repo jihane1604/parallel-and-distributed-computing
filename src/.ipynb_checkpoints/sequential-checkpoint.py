@@ -12,6 +12,7 @@ def run_sequential(num_numbers = 10000):
     float: The execution time in seconds.
     """
     total_start_time = time.time()
-    add_n_numbers(0, num_numbers)
+    total = add_n_numbers(0, num_numbers)
+    print(f'total sum: {total}')
     total_end_time = time.time()
     return total_end_time - total_start_time
