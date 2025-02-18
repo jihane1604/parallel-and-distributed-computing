@@ -17,18 +17,18 @@ print('-----')
 
 # calculate speedup 
 thread_speedup = seq_time / thread_time
-thread_efficiency = thread_speedup / 6 # 4 is the number of processes / threads
+thread_efficiency = thread_speedup / 6 # 6 is the number of processes / threads
 # estimating p and alpha from number of lines
 # p = number of parallel lines / number of total lines 
 thread_amdhal = 1 / ((1-0.87) + (0.87/6))
-thread_gustaffson = 4 + 0.13 * (1-6)
+thread_gustaffson = 6 + 0.13 * (1-6)
 
 process_speedup = seq_time / process_time
-process_efficiency = process_speedup / 6 # 4 is the number of processes / threads
+process_efficiency = process_speedup / 6 # 6 is the number of processes / threads
 # estimating p and alpha from number of lines
 # p = number of parallel lines / number of total lines 
 process_amdhal = 1 / ((1-0.87) + (0.87/6))
-process_gustaffson = 4 + 0.13 * (1-6)
+process_gustaffson = 6 + 0.13 * (1-6)
 
 
 print(f"Thread speedup rate: {thread_speedup} \nThread efficiency: {thread_efficiency} \nThread Amdhal {thread_amdhal} \nThread Gustaffson {thread_gustaffson} \n-------- \nProcess speedup rate: {process_speedup} \nProcess efficiency: {process_efficiency} \nAmdhal: {process_amdhal} \nGustaffson {process_gustaffson} \n--------")

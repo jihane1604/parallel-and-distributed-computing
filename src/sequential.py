@@ -17,11 +17,9 @@ def run_sequential():
         "best_rmse": float('inf'),
         "best_mape": float('inf'),
         "best_model": None,
-        "best_params":  {
-                'n_estimators': None,
-                'max_features': None,
-                'max_depth': None
-            }
+        "best_n_estimators": None,
+        "best_max_features": None,
+        "best_max_depth": None
     }
 
     X_train, X_val, y_train, y_val = split_data()
@@ -29,9 +27,13 @@ def run_sequential():
     for n_estimators in n_estimators_range:
         for max_features in max_features_range:
             for max_depth in max_depth_range:
-                train_and_evaluate(n_estimators, max_features, max_depth, best, X_train, y_train, X_val, y_val, None)
+                train_and_evaluate(n_estimators, max_features, max_depth, best, X_train, y_train, X_val, y_val, None, None)
 
-    print(f"Best Parameters: {best["best_params"]}, Best RMSE: {best["best_rmse"]}, Best MAPE: {best["best_mape"]}%")
+    print(f"Best Parameters: n_estimators={best['best_n_estimators']}, "
+          f"max_features={best['best_max_features']}, "
+          f"max_depth={best['best_max_depth']}")
+    print(f"Best RMSE: {best['best_rmse']:.2f}, "
+          f"Best MAPE: {best['best_mape']:.2f}%")
 
     # end time
     end_time = time.time()

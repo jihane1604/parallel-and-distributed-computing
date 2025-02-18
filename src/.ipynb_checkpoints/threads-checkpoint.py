@@ -19,11 +19,9 @@ def run_thread(n):
         "best_rmse": float('inf'),
         "best_mape": float('inf'),
         "best_model": None,
-        "best_params": {
-                'n_estimators': None,
-                'max_features': None,
-                'max_depth': None
-            }
+        "best_n_estimators": None,
+        "best_max_features": None,
+        "best_max_depth": None
     }
 
     X_train, X_val, y_train, y_val = split_data()
@@ -37,6 +35,7 @@ def run_thread(n):
     
     # create a barrier for every n threads
     barrier = threading.Barrier(n)
+    lock = threading.Lock()
     
     # launch threads
     threads = []
@@ -44,15 +43,20 @@ def run_thread(n):
         for _ in range(n):  # Run n threads at a time
             if param_queue.empty():
                 break
-            n_estimators, max_features, max_depth = param_queue.get()
+            params = param_queue.get()
             thread = threading.Thread(target=train_and_evaluate, 
-                                      args=(n_estimators, max_features, max_depth, best, X_train, y_train, X_val, y_val, barrier))
+                                      args=(*params, best, X_train, y_train, X_val, y_val, lock, barrier))
             threads.append(thread)
             thread.start()
         
         for thread in threads:
             thread.join()
-    print(f"Best Parameters: {best["best_params"]}, Best RMSE: {best["best_rmse"]}, Best MAPE: {best["best_mape"]}%")
+            
+    print(f"Best Parameters: n_estimators={best['best_n_estimators']}, "
+          f"max_features={best['best_max_features']}, "
+          f"max_depth={best['best_max_depth']}")
+    print(f"Best RMSE: {best['best_rmse']:.2f}, "
+          f"Best MAPE: {best['best_mape']:.2f}%")
     
     end_time = time.time()
     return end_time - start_time
