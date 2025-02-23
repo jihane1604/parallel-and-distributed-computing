@@ -5,6 +5,17 @@ from src.preprocessing import split_data
 
 def run_process(n):
     """
+    Runs a multiprocessing-based hyperparameter search to train and evaluate a Random Forest model.
+
+    This function defines ranges for hyperparameters (n_estimators, max_features, max_depth) and
+    evaluates different combinations of these parameters using multiple processes. It tracks the 
+    best performing model based on RMSE and MAPE metrics.
+
+    Args:
+        n (int): The number of parallel processes to run.
+
+    Returns:
+        float: The total time taken for the process to complete.
     """
     # start time 
     start_time = time.time()

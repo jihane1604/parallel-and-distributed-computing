@@ -6,6 +6,17 @@ from queue import Queue
 
 def run_thread(n):
     """
+    Runs a multithreading-based hyperparameter search to train and evaluate a Random Forest model.
+
+    This function defines ranges for hyperparameters (n_estimators, max_features, max_depth) and
+    evaluates different combinations of these parameters using multiple threads. It tracks the 
+    best performing model based on RMSE and MAPE metrics.
+
+    Args:
+        n (int): The number of parallel threads to run.
+
+    Returns:
+        float: The total time taken for the threaded search to complete.
     """
     # start time 
     start_time = time.time()

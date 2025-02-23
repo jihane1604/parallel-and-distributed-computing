@@ -4,6 +4,13 @@ from src.preprocessing import split_data
 
 def run_sequential():
     """
+    Runs a sequential hyperparameter search to train and evaluate a Random Forest model.
+
+    This function evaluates all possible combinations of hyperparameters (n_estimators, max_features, max_depth)
+    without parallelization, and tracks the best performing model based on RMSE and MAPE metrics.
+
+    Returns:
+        float: The total time taken for the sequential search to complete.
     """
     # start time 
     start_time = time.time()
