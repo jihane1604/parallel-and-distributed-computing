@@ -92,4 +92,4 @@ def update_display():
         for i in range(3):
             print(f"Sensor {i} Average: {temperature_averages[f'Sensor {i}']: .2f}°C")
         
-        time.sleep(1)
+        time.sleep(5)
