@@ -1,67 +1,95 @@
 import random
 import time
+from queue import Queue
 import threading
-import queue
+import os
 
 # Global dictionaries
-latest_temperatures = {}
-temperature_averages = {}
-temperature_queue = queue.Queue()
+latest_temperatures = {"Sensor 0": None, "Sensor 1": None, "Sensor 2": None}
+temperature_averages = {"Sensor 0": None, "Sensor 1": None, "Sensor 2": None}
+temperature_queues = {"Sensor 0": Queue(), "Sensor 1": Queue(), "Sensor 2": Queue()}
 
-# Synchronization: Lock and Condition
+# Synchronization Lock 
 lock = threading.RLock()
-condition = threading.Condition(lock)
 
-# Function to simulate the sensor (Part 3.a)
-def simulate_sensor():
+def simulate_sensor(sensor_id):
+    """
+    Simulates a temperature sensor that generates random temperature readings between 15 and 40 degrees Celsius.
+    Updates the latest temperature for the corresponding sensor and stores values in a queue for further processing.
+    
+    Args:
+        sensor_id (int): The identifier for the sensor (0, 1, or 2).
+    """
+    
+    # gloabl variable 
+    global latest_temperatures
+    
     while True:
-        temp = random.randint(15, 40)
-        latest_temperatures["latest"] = temp
-        temperature_queue.put(temp)
+        # generate random temperature
+        temperature = random.randint(15, 40)
+
+        # update the latest temperature and temperature queues
+        with lock:
+            latest_temperatures[f"Sensor {sensor_id}"] = temperature
+            
+        with lock:
+            temperature_queues[f"Sensor {sensor_id}"].put(temperature)
+        
         time.sleep(1)
 
-# Function to process temperature readings (Part 3.b)
 def process_temperatures():
+    """
+    Continuously calculates and updates the average temperature for each sensor.
+    Retrieves all values from the respective sensor queue and computes the average.
+    """
+    
+    # gloabl variable 
+    global temperature_averages
+    
     while True:
         with lock:
-            if not temperature_queue.empty():
-                temps = list(temperature_queue.queue)  # Get all items in the queue
-                avg_temp = sum(temps) / len(temps)
-                temperature_averages["average"] = avg_temp
-            time.sleep(1)
+            # Calculate the average temperature for each sensor
+            for sensor_id in range(3):
+                sensor_key = f"Sensor {sensor_id}"
+                
+                if not temperature_queues[sensor_key].empty():
+                    # Get all items in the queue
+                    temps = list(temperature_queues[sensor_key].queue)
+                    
+                    avg_temp = sum(temps) / len(temps)
+                    temperature_averages[sensor_key] = avg_temp
+        
+        time.sleep(1)
 
 def initialize_display():
+    """
+    Initializes the display with placeholder values before actual sensor data is processed.
+    Prints a formatted output showing the latest and average temperatures as "--°C".
+    """
+    
     print("Current temperatures:")
-    print("Latest Temperatures: Sensor 1: --°C Sensor 2: --°C Sensor 3: --°C", flush = True)
-    print("Sensor 1 Average: --°C", flush = True)
-    print("Sensor 2 Average: --°C", flush = True)
-    print("Sensor 3 Average: --°C", flush = True)
+    print("Latest Temperatures: ", end="")
+    for i in range(3):
+        print(f"Sensor {i}: --°C", end=" ")
+    print("\n")
+    for i in range(3):
+        print(f"Sensor {i} Average: --°C")
 
 def update_display():
+    """
+    Periodically clears the terminal screen and displays the latest and average temperature readings for each sensor.
+    Retrieves values from the global dictionaries and updates the display every second.
+    """
+    
     while True:
-        with lock:
-            latest_temp = latest_temperatures.get("latest", "--")
-            avg_temp = temperature_averages.get("average", "--")
-            
-        print(f"\rLatest Temperatures: Sensor 1: {latest_temp}°C Sensor 2: {latest_temp}°C Sensor 3: {latest_temp}°C", end="", flush = True)
-        print(f"\rSensor 1 Average: {avg_temp}°C", end="", flush=True)
-        print(f"\rSensor 2 Average: {avg_temp}°C", end="", flush=True)
-        print(f"\rSensor 3 Average: {avg_temp}°C", end="", flush=True)
-        time.sleep(5)  # Update every 5 seconds
-
-# Threading to run both functions concurrently (Part 3.c)
-if __name__ == "__main__":
-    initialize_display()
-    # Creating threads
-    sensor_thread = threading.Thread(target=simulate_sensor, daemon=True)
-    processor_thread = threading.Thread(target=process_temperatures, daemon=True)
-    display_thread = threading.Thread(target=update_display, daemon=True)
-
-    # Start the threads
-    sensor_thread.start()
-    processor_thread.start()
-    display_thread.start()
-
-    # Main thread waits here, but the others continue running in the background
-    while True:
-        time.sleep(1)  # Main program can continue doing other work
+        # clear screen 
+        os.system('clear')
+        print("Current temperatures:")
+        print("Latest Temperatures: ", end="")
+        for i in range(3):
+            print(f"Sensor {i}: {latest_temperatures[f'Sensor {i}']}°C", end=" ")
+        print("\n")
+        for i in range(3):
+            print(f"Sensor {i} Average: {temperature_averages[f'Sensor {i}']: .2f}°C")
+        
+        time.sleep(1)
