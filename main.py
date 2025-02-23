@@ -1,6 +1,11 @@
 from src.sequential import run_sequential
 from src.threads import run_thread
 from src.processes import run_process
+from src.utils import simulate_sensor
+import time
+
+latest_temperatures = {}
+ 
 
 # Measure the total time for each 
 seq_time = run_sequential()

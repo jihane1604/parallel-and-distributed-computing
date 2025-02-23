@@ -1,61 +1,67 @@
+import random
+import time
 import threading
-import multiprocessing
-from queue import Queue
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
-from math import sqrt
+import queue
 
-# function to train and evaluate the random forest model
-def train_and_evaluate(n_estimators, max_features, max_depth, best, 
-                       X_train, y_train, X_val, y_val, lock, barrier):
-    """
-    Trains and evaluates a Random Forest model with the given hyperparameters.
+# Global dictionaries
+latest_temperatures = {}
+temperature_averages = {}
+temperature_queue = queue.Queue()
 
-    This function initializes and fits a Random Forest model with the specified values of 
-    n_estimators, max_features, and max_depth. It then evaluates the model on the validation set 
-    and computes the RMSE and MAPE metrics. If the model's performance is better than the previous best,
-    it updates the best parameters and metrics.
+# Synchronization: Lock and Condition
+lock = threading.RLock()
+condition = threading.Condition(lock)
 
-    Args:
-        n_estimators (int): The number of trees in the Random Forest model.
-        max_features (str or int or None): The number of features to consider for the best split.
-        max_depth (int or None): The maximum depth of the trees in the model.
-        best (dict): A dictionary that holds the best model parameters and performance metrics.
-        X_train (pd.DataFrame): The training features.
-        y_train (pd.Series): The training labels.
-        X_val (pd.DataFrame): The validation features.
-        y_val (pd.Series): The validation labels.
-        lock (multiprocessing.Lock or threading.Lock, optional): A lock to manage access to shared resources.
-        barrier (multiprocessing.Barrier or threading.Barrier, optional): A barrier to synchronize multiple processes or threads.
-    """  
-    # train the model
-    rf_model = RandomForestRegressor(
-        n_estimators=n_estimators,
-        max_features=max_features,
-        max_depth=max_depth,
-        random_state=42
-    )
-    rf_model.fit(X_train, y_train)
-    
-    # make predictions and compute RMSE
-    y_val_pred = rf_model.predict(X_val)
-    rmse = sqrt(mean_squared_error(y_val, y_val_pred))
-    mape = mean_absolute_percentage_error(y_val, y_val_pred) * 100
-    if barrier:
+# Function to simulate the sensor (Part 3.a)
+def simulate_sensor():
+    while True:
+        temp = random.randint(15, 40)
+        latest_temperatures["latest"] = temp
+        temperature_queue.put(temp)
+        time.sleep(1)
+
+# Function to process temperature readings (Part 3.b)
+def process_temperatures():
+    while True:
         with lock:
-            if rmse < best["best_rmse"]:
-                best['best_rmse'] = rmse
-                best['best_mape'] = mape
-                best['best_n_estimators'] = n_estimators
-                best['best_max_features'] = max_features
-                best['best_max_depth'] = max_depth
-        
-        # wait for other threads before continuing
-        barrier.wait()
-    else:
-        if rmse < best["best_rmse"]:
-            best['best_rmse'] = rmse
-            best['best_mape'] = mape
-            best['best_n_estimators'] = n_estimators
-            best['best_max_features'] = max_features
-            best['best_max_depth'] = max_depth
+            if not temperature_queue.empty():
+                temps = list(temperature_queue.queue)  # Get all items in the queue
+                avg_temp = sum(temps) / len(temps)
+                temperature_averages["average"] = avg_temp
+            time.sleep(1)
+
+def initialize_display():
+    print("Current temperatures:")
+    print("Latest Temperatures: Sensor 1: --°C Sensor 2: --°C Sensor 3: --°C", flush = True)
+    print("Sensor 1 Average: --°C", flush = True)
+    print("Sensor 2 Average: --°C", flush = True)
+    print("Sensor 3 Average: --°C", flush = True)
+
+def update_display():
+    while True:
+        with lock:
+            latest_temp = latest_temperatures.get("latest", "--")
+            avg_temp = temperature_averages.get("average", "--")
+            
+        print(f"\rLatest Temperatures: Sensor 1: {latest_temp}°C Sensor 2: {latest_temp}°C Sensor 3: {latest_temp}°C", end="", flush = True)
+        print(f"\rSensor 1 Average: {avg_temp}°C", end="", flush=True)
+        print(f"\rSensor 2 Average: {avg_temp}°C", end="", flush=True)
+        print(f"\rSensor 3 Average: {avg_temp}°C", end="", flush=True)
+        time.sleep(5)  # Update every 5 seconds
+
+# Threading to run both functions concurrently (Part 3.c)
+if __name__ == "__main__":
+    initialize_display()
+    # Creating threads
+    sensor_thread = threading.Thread(target=simulate_sensor, daemon=True)
+    processor_thread = threading.Thread(target=process_temperatures, daemon=True)
+    display_thread = threading.Thread(target=update_display, daemon=True)
+
+    # Start the threads
+    sensor_thread.start()
+    processor_thread.start()
+    display_thread.start()
+
+    # Main thread waits here, but the others continue running in the background
+    while True:
+        time.sleep(1)  # Main program can continue doing other work
