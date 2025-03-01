@@ -4,8 +4,8 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from scipy import ndimage as nd
 from skimage.filters import sobel, gabor, hessian, prewitt
-import threading
-from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor
 import time
 from tqdm import tqdm
 import os
@@ -41,16 +41,14 @@ def process_single_image(image):
         'Prewitt': prewitt(image)
     }
 
-# threading 
-def process_images_thread(images):
+def process_images_process(images):
     """
     """
     processed_images = []
-    
-    with ThreadPoolExecutor() as executor:
+
+    with ProcessPoolExecutor(max_workers = 6) as executor:
         results = list(tqdm(executor.map(process_single_image, images), total=len(images)))
     return results
-
 
 # Define the path to the dataset
 dataset_path = '../data/brain_tumor_dataset/'
@@ -59,21 +57,21 @@ dataset_path = '../data/brain_tumor_dataset/'
 yes_images = glob.glob(dataset_path + 'yes/*')
 no_images = glob.glob(dataset_path + 'no/*')
 
-yes_images = read_images(yes_images[:5])
-no_images = read_images(no_images[:5])
+yes_images = read_images(yes_images)
+no_images = read_images(no_images)
 
-# run the threads
+# run the processes
 start_time = time.time()
-yes_inputs = process_images_thread(yes_images)
-no_inputs = process_images_thread(no_images)
+yes_inputs = process_images_process(yes_images)
+no_inputs = process_images_process(no_images)
 end_time = time.time()
 
 execution_time = end_time - start_time
-print(f"Threading execution time: {execution_time} seconds")
+print(f"Processing execution time: {execution_time} seconds")
 
 # Save execution time to a file
 script_directory = os.path.dirname(os.path.abspath(__file__))
-execution_time_path = os.path.join(script_directory, "threading_execution_time.txt")
+execution_time_path = os.path.join(script_directory, "processing_execution_time.txt")
 
 with open(execution_time_path, "w") as file:
     file.write(f"Execution Time: {execution_time} seconds\n")
