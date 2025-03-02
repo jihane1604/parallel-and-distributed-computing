@@ -47,7 +47,7 @@ def process_images_process(images):
     processed_images = []
 
     with ProcessPoolExecutor(max_workers = 6) as executor:
-        results = list(tqdm(executor.map(process_single_image, images), total=len(images)))
+        results = list(tqdm(executor.map(process_single_image, images, chunksize = 5), total=len(images)))
     return results
 
 # Define the path to the dataset
@@ -72,8 +72,16 @@ print(f"Processing execution time: {execution_time} seconds")
 # Save execution time to a file
 script_directory = os.path.dirname(os.path.abspath(__file__))
 execution_time_path = os.path.join(script_directory, "processing_execution_time.txt")
+yes_filtered_path = os.path.join(script_directory, "yes_filtered_images.py")
+no_filtered_path = os.path.join(script_directory, "no_filtered_images.py")
 
 with open(execution_time_path, "w") as file:
     file.write(f"Execution Time: {execution_time} seconds\n")
+
+with open(yes_filtered_path, "w") as file:
+    file.write(f"yes_inputs = {yes_inputs}")
+
+with open(no_filtered_path, "w") as file:
+    file.write(f"no_inputs = {no_inputs}")
 
 print(f"Execution time saved to {execution_time_path}")

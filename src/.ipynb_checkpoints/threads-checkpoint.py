@@ -59,8 +59,8 @@ dataset_path = '../data/brain_tumor_dataset/'
 yes_images = glob.glob(dataset_path + 'yes/*')
 no_images = glob.glob(dataset_path + 'no/*')
 
-yes_images = read_images(yes_images[:5])
-no_images = read_images(no_images[:5])
+yes_images = read_images(yes_images)
+no_images = read_images(no_images)
 
 # run the threads
 start_time = time.time()
