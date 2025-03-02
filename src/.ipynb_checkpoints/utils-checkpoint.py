@@ -1,95 +1,103 @@
-import random
-import time
-from queue import Queue
-import threading
-import os
+import glob
+import cv2
+from skimage.filters.rank import entropy
+from skimage.morphology import disk
+from scipy import ndimage as nd
+from skimage.filters import sobel, gabor, hessian, prewitt
+import numpy as np
+import skimage.feature as feature
 
-# Global dictionaries
-latest_temperatures = {"Sensor 0": None, "Sensor 1": None, "Sensor 2": None}
-temperature_averages = {"Sensor 0": None, "Sensor 1": None, "Sensor 2": None}
-temperature_queues = {"Sensor 0": Queue(), "Sensor 1": Queue(), "Sensor 2": Queue()}
+# function to read the images
+def read_images(images_path):
+    """
+    Reads all images from a specified path using OpenCV.
 
-# Synchronization Lock 
-lock = threading.RLock()
+    Parameters:
+        - images_path (str): The path to the directory containing the images.
+    Returns:
+        - images (list): A list of images read from the directory.
+    """
+    images = []
+    for file_path in images_path:
+        image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+        if image is not None:
+                images.append(image)
+    return images
 
-def simulate_sensor(sensor_id):
+# function to open the images
+def open_images():
     """
-    Simulates a temperature sensor that generates random temperature readings between 15 and 40 degrees Celsius.
-    Updates the latest temperature for the corresponding sensor and stores values in a queue for further processing.
-    
-    Args:
-        sensor_id (int): The identifier for the sensor (0, 1, or 2).
     """
+    # Define the path to the dataset
+    dataset_path = '../data/brain_tumor_dataset/'
     
-    # gloabl variable 
-    global latest_temperatures
+    # List all image files in the 'yes' and 'no' directories
+    yes_images = glob.glob(dataset_path + 'yes/*')
+    no_images = glob.glob(dataset_path + 'no/*')
     
-    while True:
-        # generate random temperature
-        temperature = random.randint(15, 40)
+    yes_images = read_images(yes_images)
+    no_images = read_images(no_images)
 
-        # update the latest temperature and temperature queues
-        with lock:
-            latest_temperatures[f"Sensor {sensor_id}"] = temperature
-            
-        with lock:
-            temperature_queues[f"Sensor {sensor_id}"].put(temperature)
-        
-        time.sleep(1)
+    return yes_images, no_images
 
-def process_temperatures():
+# utility function to filter one image
+def filter_single_image(image):
     """
-    Continuously calculates and updates the average temperature for each sensor.
-    Retrieves all values from the respective sensor queue and computes the average.
     """
-    
-    # gloabl variable 
-    global temperature_averages
-    
-    while True:
-        with lock:
-            # Calculate the average temperature for each sensor
-            for sensor_id in range(3):
-                sensor_key = f"Sensor {sensor_id}"
-                
-                if not temperature_queues[sensor_key].empty():
-                    # Get all items in the queue
-                    temps = list(temperature_queues[sensor_key].queue)
-                    
-                    avg_temp = sum(temps) / len(temps)
-                    temperature_averages[sensor_key] = avg_temp
-        
-        time.sleep(1)
+    return {
+        'Original': image,
+        'Entropy': entropy(image, disk(2)),
+        'Gaussian': nd.gaussian_filter(image, sigma=1),
+        'Sobel': sobel(image),
+        'Gabor': gabor(image, frequency=0.9)[1],
+        'Hessian': hessian(image, sigmas=range(1, 100, 1)),
+        'Prewitt': prewitt(image)
+    }
 
-def initialize_display():
+# Function to compute GLCM features for an image
+def compute_glcm_features(image, 
+                                                    filter_name):
     """
-    Initializes the display with placeholder values before actual sensor data is processed.
-    Prints a formatted output showing the latest and average temperatures as "--°C".
-    """
-    
-    print("Current temperatures:")
-    print("Latest Temperatures: ", end="")
-    for i in range(3):
-        print(f"Sensor {i}: --°C", end=" ")
-    print("\n")
-    for i in range(3):
-        print(f"Sensor {i} Average: --°C")
+    Computes GLCM (Gray Level Co-occurrence Matrix) features for an image.
 
-def update_display():
+    Parameters:
+    - image: A 2D array representing the image. Should be in grayscale.
+    - filter_name: A string representing the name of the filter applied to the image.
+
+    Returns:
+    - features: A dictionary containing the computed GLCM features. The keys are
+        formatted as "{filter_name}_{feature_name}_{angle_index}", where "angle_index"
+        corresponds to the index of the angle used for the GLCM calculation (1-based).
+        The features include contrast, dissimilarity, homogeneity, energy, correlation,
+        and ASM (Angular Second Moment) for each angle (0, π/4, π/2, 3π/4).
+
+    Notes:
+    - The image is first converted from float to uint8 format, as the graycomatrix
+        function expects integer values.
+    - The GLCM is computed using four angles (0, π/4, π/2, 3π/4) with a distance of 1.
+    - The GLCM properties are computed and flattened into a 1D array to handle multiple
+        angles. Each property value for each angle is stored as a separate key in the
+        resulting dictionary.
     """
-    Periodically clears the terminal screen and displays the latest and average temperature readings for each sensor.
-    Retrieves values from the global dictionaries and updates the display every second.
-    """
-    
-    while True:
-        # clear screen 
-        os.system('clear')
-        print("Current temperatures:")
-        print("Latest Temperatures: ", end="")
-        for i in range(3):
-            print(f"Sensor {i}: {latest_temperatures[f'Sensor {i}']}°C", end=" ")
-        print("\n")
-        for i in range(3):
-            print(f"Sensor {i} Average: {temperature_averages[f'Sensor {i}']: .2f}°C")
-        
-        time.sleep(5)
+    # Convert the image from float to int
+    image = (image * 255).astype(np.uint8)
+
+    # Compute the GLCM
+    graycom = feature.graycomatrix(image, [1], [0, np.pi/4, np.pi/2, 3*np.pi/4], levels=256, symmetric=True, normed=True)
+
+    # Compute GLCM properties
+    features = {}
+    for prop in ['contrast', 'dissimilarity', 'homogeneity', 'energy', 'correlation', 'ASM']:
+            values = feature.graycoprops(graycom, prop).flatten()
+            for i, value in enumerate(values):
+                    features[f'{filter_name}_{prop}_{i+1}'] = value
+    return features
+
+# utility function to process one image
+def process_single_image(args):
+    filtered_images, tumor_presence = args
+    glcm_features = {}
+    for key, image in filtered_images.items():
+        glcm_features.update(compute_glcm_features(image, key))
+    glcm_features['Tumor'] = tumor_presence
+    return glcm_features
