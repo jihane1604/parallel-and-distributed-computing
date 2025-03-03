@@ -6,6 +6,7 @@ from scipy import ndimage as nd
 from skimage.filters import sobel, gabor, hessian, prewitt
 import numpy as np
 import skimage.feature as feature
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
 
 # function to read the images
 def read_images(images_path):
@@ -95,9 +96,23 @@ def compute_glcm_features(image,
 
 # utility function to process one image
 def process_single_image(args):
+    """
+    """
     filtered_images, tumor_presence = args
     glcm_features = {}
     for key, image in filtered_images.items():
         glcm_features.update(compute_glcm_features(image, key))
     glcm_features['Tumor'] = tumor_presence
     return glcm_features
+
+# Function to train and evaluate a model
+def train_model(args):
+    name, model, X_train, X_test, y_train, y_test = args
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average='macro')
+    precision = precision_score(y_test, y_pred, average='macro')
+    recall = recall_score(y_test, y_pred, average='macro')
+    return name, accuracy, cm, f1, precision, recall
