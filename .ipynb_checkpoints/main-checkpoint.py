@@ -1,11 +1,12 @@
-from mpi4py import MPI
+from src.multiprocessing_results import process_time, process_glcm_time
+from src.sequential_results import seq_time, seq_glcm_time
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
+total_seq_time = seq_time + seq_glcm_time
+total_process_time = process_time + process_glcm_time
 
-if rank == 0:
-    data = {'a': 7, 'b': 3.14}
-    comm.send(data, dest=1, tag=11)
-elif rank == 1:
-    data = comm.recv(source=0, tag=11)
-    print('On process 1, data received:', data)
+process_speedup = total_seq_time / total_process_time
+process_efficiency = process_speedup / 6 # num processors = 6
+process_amdhal = 1 / ((1-0.2)+(0.2/6))
+process_gustafson = 6 + 0.8 *(1-6)
+
+print(f"Multiprocessing speedup: {process_speedup} \n\tEfficiency: {process_efficiency} \n\tAmdhals: {process_amdhal} \n\tGustafson: {process_gustafson}")
