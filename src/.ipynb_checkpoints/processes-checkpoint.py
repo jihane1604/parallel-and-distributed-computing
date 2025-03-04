@@ -1,28 +1,24 @@
-import glob
-import cv2
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 import time
 from tqdm import tqdm
 import os
-from utils import open_images, filter_single_image, process_single_image, train_model
+from utils import open_images, filter_single_image_parallel, process_single_image, train_model
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 import pandas as pd
 import numpy as np
 from sklearn.svm import SVC
-from sklearn.preprocessing import StandardScaler
 
 
 # function to filter images
 def filter_images_process(images):
     """
     """
-    processed_images = []
 
     with ProcessPoolExecutor(max_workers = 6) as executor:
-        results = list(tqdm(executor.map(filter_single_image, images), total=len(images)))
+        results = list(tqdm(executor.map(filter_single_image_parallel, images), total=len(images)))
     return results
 
 # function to process images 
@@ -47,10 +43,10 @@ def run_filtering():
     
     # Save execution time to a file
     script_directory = os.path.dirname(os.path.abspath(__file__))
-    execution_time_path = os.path.join(script_directory, "processing_execution_time.txt")
+    execution_time_path = os.path.join(script_directory, "multiprocessing_results.py")
     
     with open(execution_time_path, "w") as file:
-        file.write(f"Execution Time: {process_filtering_time} seconds\n")
+        file.write(f"process_time = {process_filtering_time}\n")
     print("saved filtering excecution time")
 
     return yes_inputs, no_inputs
@@ -68,10 +64,10 @@ def run_glcm():
     print(f"GLCM processing execution time: {process_glcm_time} seconds")
     
     script_directory = os.path.dirname(os.path.abspath(__file__))
-    glcm_time_path = os.path.join(script_directory, "glcm_processing_execution_time.txt")
+    glcm_time_path = os.path.join(script_directory, "multiprocessing_results.py")
     
-    with open(glcm_time_path, "w") as file:
-        file.write(f"Execution Time: {process_glcm_time} seconds\n")
+    with open(glcm_time_path, "a") as file:
+        file.write(f"process_glcm_time = {process_glcm_time}\n")
     print("saved glcm excecution time")
     
     # Combine the features into a single list
@@ -97,11 +93,11 @@ def train_models_parallel(models, X_train, X_test, y_train, y_test):
     
         # Save results to a file
         script_directory = os.path.dirname(os.path.abspath(__file__))
-        results_path = os.path.join(script_directory, f"{model_name}_results.py")
+        results_path = os.path.join(script_directory, "multiprocessing_results.py")
         
-        with open(results_path, "w") as file:
-            file.write(f"accuracy={accuracy} \nf1={f1} \nprecision={precision} \nrecall={recall} \ncm={cm}")
-        print(f"saved {results}")
+        with open(results_path, "a") as file:
+            file.write(f"{model_name}_accuracy={accuracy} \n{model_name}_f1={f1} \n{model_name}_precision={precision} \n{model_name}_recall={recall} \n{model_name}_cm={cm.tolist()}\n")
+        print("saved")
 
 # main program
 def main():
@@ -114,6 +110,7 @@ def main():
     # Define models
     models = {"RandomForest": RandomForestClassifier(), "SVM": SVC(), "LogisticRegression": LogisticRegression()}
     train_models_parallel(models, X_train, X_test, y_train, y_test)
+
 
 # run main
 main()

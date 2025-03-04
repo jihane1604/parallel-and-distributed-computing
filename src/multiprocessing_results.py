@@ -1,0 +1,17 @@
+process_time = 45.97998023033142
+process_glcm_time = 0.5498142242431641
+RandomForest_accuracy=0.3333333333333333 
+RandomForest_f1=0.25 
+RandomForest_precision=0.25 
+RandomForest_recall=0.25 
+RandomForest_cm=[[1, 1], [1, 0]]
+SVM_accuracy=0.3333333333333333 
+SVM_f1=0.25 
+SVM_precision=0.16666666666666666 
+SVM_recall=0.5 
+SVM_cm=[[0, 2], [0, 1]]
+LogisticRegression_accuracy=0.3333333333333333 
+LogisticRegression_f1=0.25 
+LogisticRegression_precision=0.25 
+LogisticRegression_recall=0.25 
+LogisticRegression_cm=[[1, 1], [1, 0]]

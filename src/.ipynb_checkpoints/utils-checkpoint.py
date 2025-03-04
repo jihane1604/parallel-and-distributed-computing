@@ -7,6 +7,7 @@ from skimage.filters import sobel, gabor, hessian, prewitt
 import numpy as np
 import skimage.feature as feature
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
+import multiprocessing
 
 # function to read the images
 def read_images(images_path):
@@ -36,8 +37,8 @@ def open_images():
     yes_images = glob.glob(dataset_path + 'yes/*')
     no_images = glob.glob(dataset_path + 'no/*')
     
-    yes_images = read_images(yes_images)
-    no_images = read_images(no_images)
+    yes_images = read_images(yes_images[:5])
+    no_images = read_images(no_images[:5])
 
     return yes_images, no_images
 
@@ -54,6 +55,31 @@ def filter_single_image(image):
         'Hessian': hessian(image, sigmas=range(1, 100, 1)),
         'Prewitt': prewitt(image)
     }
+
+def apply_hessian(args):
+    """Applies the Hessian filter in a separate process."""
+    image, start, end = args
+    return hessian(image, sigmas=range(start, end, 1))
+
+def filter_single_image_parallel(image):
+    """Applies multiple filters to an image, using multiprocessing for Hessian."""
+    args = [(image, i, i+1) for i in range(1,99)]
+    # Start Hessian filtering in a separate process
+    with multiprocessing.Pool(processes=6) as pool:  # Adjust number of processes based on your system
+        hessian_result = pool.map_async(apply_hessian, args).get()
+        
+        # Apply other filters sequentially
+        filtered_images = {
+            'Original': image,
+            'Entropy': entropy(image, disk(2)),
+            'Gaussian': nd.gaussian_filter(image, sigma=1),
+            'Sobel': sobel(image),
+            'Gabor': gabor(image, frequency=0.9)[1],
+            'Hessian': np.mean(hessian_result, axis = 0),
+            'Prewitt': prewitt(image)
+        }
+
+    return filtered_images
 
 # Function to compute GLCM features for an image
 def compute_glcm_features(image, 
