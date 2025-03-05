@@ -1,3 +1,0 @@
-from multiprocessing_results import RandomForest_cm
-
-print(RandomForest_cm)
