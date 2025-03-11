@@ -17,15 +17,15 @@ if rank == 0:
 else:
     numbers = None
 
-print(numbers)
+# print(numbers)
 number = np.zeros(1, dtype = "i")
 # broadcasting: one process sends to all the rest
 comm.Scatter(numbers, number, root = 0)
-print(numbers)
-print(number)
+# print(numbers)
+# print(number)
 
 result = square(number[0])
-print(result)
+# print(result)
 time.sleep(random.randint(1, 10))
 # non blocking: can finish executing without waiting for it to be received
 request = comm.isend(result, dest = 0, tag = rank)
