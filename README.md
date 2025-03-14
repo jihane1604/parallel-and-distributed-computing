@@ -12,7 +12,7 @@
    - Generated an SSH key using the default file location.
    - Copied the public key and added it to GitHub under SSH/GPG Keys.
 2. **Repository Setup:**
-   - Created a new repository on GitHub called 'parallel-and-distributed-computing'.
+   - Created a new repository on GitHub called `parallel-and-distributed-computing`.
    - Cloned the repository onto the Ubuntu VM.
 3. **Project Structure Initialization:**
    - Set up a folder structure including folders for source code (`src/`), tests (`tests/`), and supporting files (`README.md`, `requirements.txt`).
