@@ -30,6 +30,26 @@ def read_images(images_path):
 # utility function
 def process_single_image(image):
     """
+    Processes a single image by applying multiple image filters.
+
+    This function applies a series of image processing filters to the input image,
+    including entropy, Gaussian, Sobel, Gabor, Hessian, and Prewitt filters.
+    Each filter is designed to highlight different aspects of the image such as texture,
+    edges, and structural features.
+
+    Args:
+        image (ndarray): The input image represented as a NumPy array.
+
+    Returns:
+        dict: A dictionary containing the original image and the results of the filtering operations,
+              with the following keys:
+                - 'Original': The original input image.
+                - 'Entropy': The image after applying an entropy filter with a disk of radius 2.
+                - 'Gaussian': The image after applying a Gaussian filter (sigma=1).
+                - 'Sobel': The image after applying the Sobel edge detection filter.
+                - 'Gabor': The second output of the Gabor filter with frequency 0.9.
+                - 'Hessian': The image after applying the Hessian filter with sigma values ranging from 1 to 99.
+                - 'Prewitt': The image after applying the Prewitt edge detection filter.
     """
     return {
         'Original': image,
@@ -44,6 +64,17 @@ def process_single_image(image):
 # threading 
 def process_images_thread(images):
     """
+    Processes a list of images concurrently using a thread pool.
+
+    This function applies the `process_single_image` function to each image in the provided list
+    using the ThreadPoolExecutor for parallel processing. A progress bar from tqdm is displayed to
+    monitor the processing progress.
+
+    Args:
+        images (list): A list of images, where each image is represented as a NumPy array.
+
+    Returns:
+        list: A list of dictionaries, each containing the processed results for an image.
     """
     processed_images = []
     
