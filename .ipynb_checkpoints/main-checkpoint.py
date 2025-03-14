@@ -3,15 +3,15 @@ from src.threads import run_thread
 from src.processes import run_process
 
 # Measure the total time for each 
-seq_time = run_sequential(10000000)
+seq_time = run_sequential(1000000000)
 print(f"Total time taken sequentially: {seq_time} seconds")
 print('-----')
 
-thread_time = run_thread(4, 10000000)
+thread_time = run_thread(4, 1000000000)
 print(f"Total time taken using multithreading: {thread_time} seconds")
 print('-----')
 
-process_time = run_process(4, 10000000)
+process_time = run_process(4, 1000000000)
 print(f"Total time taken using multiprocessing: {process_time} seconds")
 print('-----')
 
