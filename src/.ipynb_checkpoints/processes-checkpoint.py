@@ -78,7 +78,7 @@ def run_pool_map(n = 6):
     numbers = [i for i in range(10 ** n)]
     
     with multiprocessing.Pool(processes = 6) as pool:
-        results = pool.map(square, numbers).get()
+        results = pool.map(square, numbers)
 
     # end time
     end_time = time.time()
