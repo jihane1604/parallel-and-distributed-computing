@@ -187,8 +187,11 @@ def run_executor(n = 6):
     # create a list of 10 ^ n numbers  
     numbers = [i for i in range(10 ** n)]
 
-    with ProcessPoolExecutor(max_workers = 6) as executor:
-        results = list(executor.map(square, numbers))
+    # compute a chunk size
+    chunk_size = max(1, len(numbers) // (6 * 10))
+    
+    with ProcessPoolExecutor(max_workers=6) as executor:
+        results = list(executor.map(square, numbers, chunksize=chunk_size))
     # end time
     end_time = time.time()
     print(f"The last results is: {results[-1]}")

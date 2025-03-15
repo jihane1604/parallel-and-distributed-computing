@@ -26,7 +26,7 @@ The assignment has two major parts:
    - **Apply_async execution time:** 170.04 seconds
    - **Map execution time:** 0.17 seconds
    - **Map_async execution time:** 0.18 seconds
-   - **ProcessPoolExecutor execution time:** 111.28 seconds
+   - **ProcessPoolExecutor execution time:** Before chunking: 111.28 seconds - After chunking: 0.31 seconds
 
    **Results n = 7:**
    - **Sequential execution time** 1.15 seconds
@@ -35,13 +35,13 @@ The assignment has two major parts:
    - **Apply_async execution time:** 1760.59 seconds
    - **Map execution time:** 1.56 seconds
    - **Map_async execution time:** 1.55 seconds
-   - **ProcessPoolExecutor execution time:** 1116.72 seconds 
+   - **ProcessPoolExecutor execution time:** Before chunking: 1116.72 seconds - After chunking: 3.20 seconds
 
    **Observations (for n = 6 and n = 7):**
    - The **sequential execution** is extremely fast for trivial computations like squaring numbers.
    - The **apply/apply_async** approaches incur a high overhead, leading to much slower performance.
    - The **map/map_async** methods in the multiprocessing pool show a good performance because they eliminate process management overhead; however they don't make the execution time any faster than running it sequentially.
-   - The **ProcessPoolExecutor** method shows a very slow execution due to overhead from processing each small task individually without chunking
+   - The **ProcessPoolExecutor** method shows a very slow execution due to overhead from processing each small task individually without chunking. After applying chunking, the excution time was dramatically reduced because chunking reduces the overhead involved in dispatching and managing tasks in the `ProcessPoolExecutor`
 
 3. **Process Synchronization with Semaphores**  
    This part demonstrates how to manage access to a limited resource (simulated database connections) using a semaphore.
@@ -95,10 +95,10 @@ The assignment has two major parts:
         The Pool’s `map()` and `map_async()` methods significantly reduce the overhead by reusing a fixed number of worker processes. On the other hand, `apply()` and `apply_async()` are much slower because they submit tasks one at a time.
 
     - **ProcessPoolExecutor**:
-        When you call `executor.map()` without specifying a chunk size, it typically sends one task at a time to the worker processes. Since each task (computing the square) is very trivial, the overhead of dispatching, serializing the task, and communicating between processes dominates the execution time.
+        When you call `executor.map()` without specifying a chunk size, it typically sends one task at a time to the worker processes. Since each task (computing the square) is very trivial, the accumulated overhead of task scheduling, serialization and deserialization and interprocess communicatoin takes up all the execution time.
         In contrast, the `multiprocessing.Pool.map()` and `map_async()` methods automatically calculate an efficient chunk size, grouping many numbers together in each task submission. This reduces the overhead by paying off the cost of interprocess communication over many tasks.
-        For very small and fast computations, the overhead (process startup, interprocess communication, task dispatching) is a significant part of the total execution time. The ProcessPoolExecutor, with a fine-grained (chunk size 1) approach by default, ends up with much more overhead than Pool’s optimized chunking strategy.
-        In conclusion, because the ProcessPoolExecutor processes each tiny task individually, its overhead becomes very significant relative to the fast execution of the `square()` function, leading to much longer execution times compared to the Pool map methods that group tasks more efficiently.
+        When using chunking, instead of incurring the overhead for each individual task, the overhead is incurred once per batch, meaning that fewer, larger data transfers occur between processes, and fewer tasks overall.
+        In conclusion, because the ProcessPoolExecutor processes each tiny task individually, its overhead becomes very significant relative to the fast execution of the `square()` function, leading to much longer execution times. Chunking transforms that issue by efficiently handling the computational work by each worker process.
 
 - **Semaphore and Connection Pool:**
 
