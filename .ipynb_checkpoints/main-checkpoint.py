@@ -1,51 +1,19 @@
-from mpi4py import MPI
-import numpy as np
-import time
+from src.sequential import run_seq
+from src.processes import run_loop_processes, run_pool_map, run_pool_map_async, run_pool_apply, run_pool_apply_async, run_executor
 
-def square(arr):
-    return arr ** 2  # Vectorized NumPy operation
+seq_time = run_seq(6)
+# loop_process_time = run_loop_processes(6)
+apply_time = run_pool_apply(6)
+apply_async_time = run_pool_apply_async(6)
+map_time = run_pool_map(6)
+map_async_time = run_pool_map_async(6)
+executor_time = run_executor(6)
 
-start_time = time.time()
-# Initialize MPI
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
 
-start_time = time.time()
-
-N = int(1e8)  # Compute squares up to 10^8
-
-# Divide workload among processes
-chunk_size = N // size  # Evenly distribute numbers
-remainder = N % size  # Handle remainder if not evenly divisible
-
-# Master process (rank 0) initializes data
-if rank == 0:
-    numbers = np.arange(N, dtype="i")  # Array from 0 to 10^8
-    # Split into chunks for each process
-    chunks = [numbers[i * chunk_size:(i + 1) * chunk_size] for i in range(size)]
-    if remainder:
-        chunks[-1] = np.append(chunks[-1], numbers[-remainder:])  # Add remainder to the last chunk
-else:
-    chunks = None
-
-# Scatter data to all processes
-local_numbers = np.zeros(chunk_size + (remainder if rank == size - 1 else 0), dtype="i")
-comm.Scatter(chunks, local_numbers, root=0)
-
-# Compute the square of local chunk
-local_results = square(local_numbers)
-
-# Gather results at rank 0
-if rank == 0:
-    final_results = np.zeros(N, dtype="i")
-else:
-    final_results = None
-
-comm.Gather(local_results, final_results, root=0)
-
-# Master process prints the results
-if rank == 0:
-    print(f"Computation completed. Last squared number: {final_results[-1]}")
-    end_time = time.time()
-    print(f"Total execution time: {end_time - start_time:.2f} seconds")
+print(f"Sequential execution time: {seq_time}\n")
+# print(f"Process looping execution time: {loop_process_time}\n")
+print(f"Pool apply execution time: {apply_time}\n")
+print(f"Pool apply async execution time: {apply_async_time}\n")
+print(f"Pool map execution time: {map_time}\n")
+print(f"Pool map async execution time: {map_async_time}\n")
+print(f"Process pool executor execution time: {executor_time}\n")
