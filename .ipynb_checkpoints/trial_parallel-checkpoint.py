@@ -34,7 +34,8 @@ stagnation_counter = 0
 # Main GA loop
 for generation in range(num_generations):
     # Evaluate calculate_fitness
-    calculate_fitness_values = np.array([calculate_fitness(route, distance_matrix) for route in population])
+    with multiprocessing.Pool(processes = 6) as pool:
+        calculate_fitness_values = np.array(pool.starmap_async(calculate_fitness, zip(population, repeat(distance_matrix))).get())
     
     # Check for stagnation
     current_best_calculate_fitness = np.max(calculate_fitness_values) # uisng max because the fitness values are negative

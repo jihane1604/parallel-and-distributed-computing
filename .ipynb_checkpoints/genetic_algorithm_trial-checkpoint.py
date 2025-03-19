@@ -4,12 +4,14 @@ from src.genetic_algorithms_functions import calculate_fitness, \
     select_in_tournament, order_crossover, mutate, \
     generate_unique_population
 import time
+import multiprocessing
+from itertools import repeat
 
 # start time
 start_time = time.time()
 
 # Load the distance matrix
-distance_matrix = pd.read_csv('data/city_distances_extended.csv').to_numpy()
+distance_matrix = pd.read_csv('data/city_distances.csv').to_numpy()
 
 # Parameters
 num_nodes = distance_matrix.shape[0]
@@ -33,9 +35,9 @@ stagnation_counter = 0
 for generation in range(num_generations):
     # Evaluate calculate_fitness
     calculate_fitness_values = np.array([calculate_fitness(route, distance_matrix) for route in population])
-
+    
     # Check for stagnation
-    current_best_calculate_fitness = np.max(calculate_fitness_values)
+    current_best_calculate_fitness = np.max(calculate_fitness_values) # uisng max because the fitness values are negative
     if current_best_calculate_fitness > best_calculate_fitness:
         best_calculate_fitness = current_best_calculate_fitness
         stagnation_counter = 0
@@ -62,7 +64,7 @@ for generation in range(num_generations):
     mutated_offspring = [mutate(route, mutation_rate) for route in offspring]
 
     # Replacement: Replace the individuals that lost in the tournaments with the new offspring
-    for i, idx in enumerate(np.argsort(calculate_fitness_values)[::-1][:len(mutated_offspring)]):
+    for i, idx in enumerate(np.argsort(calculate_fitness_values)[:len(mutated_offspring)]):
         population[idx] = mutated_offspring[i]
 
     # Ensure population uniqueness

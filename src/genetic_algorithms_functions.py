@@ -16,12 +16,16 @@ def calculate_fitness(route,
     """
     total_distance = 0
     # iterate through consecutive node pairs in the route
-    for i in range(len(route)-1):
-        node1 = route[i]
-        node2 = route[i+1]
+    for i in range(len(route)):
+        if i == len(route)-1:
+            node1 = route[i]
+            node2 = route[0]
+        else:
+            node1 = route[i]
+            node2 = route[i+1]
         distance = distance_matrix[node1, node2]
-        # if the distance is 10000, the route is infeasible: return a large negative penalty
-        if distance == 10000:
+        # if the distance is 100000, the route is infeasible: return a large negative penalty
+        if distance == 100000:
             return -1e6
         total_distance += distance
     # return the negative total distance to make it a fitness value (minimizing distance)
