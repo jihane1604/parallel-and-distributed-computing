@@ -35,6 +35,7 @@ stagnation_counter = 0
 for generation in range(num_generations):
     # Evaluate calculate_fitness
     with multiprocessing.Pool(processes = 6) as pool:
+        # using starmap_async to parallelize the execution 
         calculate_fitness_values = np.array(pool.starmap_async(calculate_fitness, zip(population, repeat(distance_matrix))).get())
     
     # Check for stagnation

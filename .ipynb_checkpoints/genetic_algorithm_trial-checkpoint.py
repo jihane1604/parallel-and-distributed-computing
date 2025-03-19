@@ -4,10 +4,7 @@ from src.genetic_algorithms_functions import calculate_fitness, \
     select_in_tournament, order_crossover, mutate, \
     generate_unique_population
 import time
-import multiprocessing
-from itertools import repeat
 
-# start time
 start_time = time.time()
 
 # Load the distance matrix
@@ -34,11 +31,11 @@ stagnation_counter = 0
 # Main GA loop
 for generation in range(num_generations):
     # Evaluate calculate_fitness
-    calculate_fitness_values = np.array([calculate_fitness(route, distance_matrix) for route in population])
-    
+    calculate_fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population])
+
     # Check for stagnation
-    current_best_calculate_fitness = np.max(calculate_fitness_values) # uisng max because the fitness values are negative
-    if current_best_calculate_fitness > best_calculate_fitness:
+    current_best_calculate_fitness = np.min(calculate_fitness_values)
+    if current_best_calculate_fitness < best_calculate_fitness:
         best_calculate_fitness = current_best_calculate_fitness
         stagnation_counter = 0
     else:
@@ -47,7 +44,7 @@ for generation in range(num_generations):
     # Regenerate population if stagnation limit is reached, keeping the best individual
     if stagnation_counter >= stagnation_limit:
         print(f"Regenerating population at generation {generation} due to stagnation")
-        best_individual = population[np.argmax(calculate_fitness_values)]
+        best_individual = population[np.argmin(calculate_fitness_values)]
         population = generate_unique_population(population_size - 1, num_nodes)
         population.append(best_individual)
         stagnation_counter = 0
@@ -64,7 +61,7 @@ for generation in range(num_generations):
     mutated_offspring = [mutate(route, mutation_rate) for route in offspring]
 
     # Replacement: Replace the individuals that lost in the tournaments with the new offspring
-    for i, idx in enumerate(np.argsort(calculate_fitness_values)[:len(mutated_offspring)]):
+    for i, idx in enumerate(np.argsort(calculate_fitness_values)[::-1][:len(mutated_offspring)]):
         population[idx] = mutated_offspring[i]
 
     # Ensure population uniqueness
@@ -76,17 +73,16 @@ for generation in range(num_generations):
 
     # Print best calculate_fitness
     print(f"Generation {generation}: Best calculate_fitness = {current_best_calculate_fitness}")
-
+    
 # Update calculate_fitness_values for the final population
-calculate_fitness_values = np.array([calculate_fitness(route, distance_matrix) for route in population])
+calculate_fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population])
 
 # Output the best solution
-best_idx = np.argmax(calculate_fitness_values)
+best_idx = np.argmin(calculate_fitness_values)
 best_solution = population[best_idx]
-print("Best Solution:", best_solution)
-print("Total Distance:", calculate_fitness(best_solution, distance_matrix))
 
-# end time 
 end_time = time.time()
 
-print(f"\nTotal execution time: {end_time - start_time}")
+print("Best Solution:", best_solution)
+print("Total Distance:", -calculate_fitness(best_solution, distance_matrix))
+print("Total time taken:", end_time - start_time)

@@ -1,7 +1,7 @@
 # Assignment 1 Part 2
 
-Total sequential execution time fro the normal dataset: 8.11 seconds -- distance -1224
-Total sequential execution time fro the extended dataset: 20.25 seconds -- distance -1000000
+Total sequential execution time fro the normal dataset: 7.90 seconds -- distance 1224
+Total sequential execution time fro the extended dataset: 20.25 seconds -- distance -1000000 --> no path found
 
 # Genetic Algorithm for TSP: Quick Overview
 
@@ -31,8 +31,7 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
   - Evaluates the final population to select and print the best route and its total distance.
   - Measures and prints the total execution time.
 
-## Parallelizing the code 
-- **a. Fitness Evaluation:** Each individual's fitness is computed by summing the distances along its route. Since the fitness of one route is independent of another, the population can be split among multiple processes/machines. Each process/machine computes fitness for its subset of routes in parallel, which reduces the overall computation time when the population size is large.
-- As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple (6) processors on a single machine, which resulted in a much slower execution time of *100.92 seconds*. We can assume that this is due to the process management overhead (just like in part one of the assignment).
-- 
-- **b. Tournament Selection:** Each tournament (where a fixed number of individuals compete) is independent. Although in the fitness evaluation is the most computationally intensive part, the tournament selection can also be parallelized by running multiple tournaments simultaneously.
+## Parallelizing and distribution the code 
+- **Fitness Evaluation:** Each individual's fitness is computed by summing the distances along its route. Since the fitness of one route is independent of another, the population can be split among multiple processes/machines. Each process/machine computes fitness for its subset of routes in parallel, which reduces the overall computation time when the population size is large.
+- **Multiprocessing pools:** As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple (6) processors on a single machine, which resulted in a much slower execution time of *100.92 seconds*. We can assume that this is due to the process management overhead (just like in part one of the assignment).
+- **Distributed using MPI4PY:**
