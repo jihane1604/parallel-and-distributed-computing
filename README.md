@@ -1,6 +1,6 @@
 # Assignment 1 Part 2
 
-Total sequential execution time fro the normal dataset: 7.90 seconds -- distance 1224
+Total sequential execution time fro the normal dataset: 8.46 seconds -- distance 1224
 Total sequential execution time fro the extended dataset: 20.25 seconds -- distance -1000000 --> no path found
 
 # Genetic Algorithm for TSP: Quick Overview
@@ -33,5 +33,16 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
 
 ## Parallelizing and distribution the code 
 - **Fitness Evaluation:** Each individual's fitness is computed by summing the distances along its route. Since the fitness of one route is independent of another, the population can be split among multiple processes/machines. Each process/machine computes fitness for its subset of routes in parallel, which reduces the overall computation time when the population size is large.
-- **Multiprocessing pools:** As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple (6) processors on a single machine, which resulted in a much slower execution time of *100.92 seconds*. We can assume that this is due to the process management overhead (just like in part one of the assignment).
+- The generation loop cannot be parallelized or distributed because each generation depends on the previous one.
+- **Multiprocessing pools:** As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple (6) processors on a single machine, which resulted in a much slower execution time of *103.76 seconds*. We can assume that this is due to the process management overhead (just like in part one of the assignment).
+- Speedup: 0.08
+- Efficiency: 0.01
 - **Distributed using MPI4PY:**
+
+## Improvements of the genetic algorithm
+- After further investigating the genetic algorithm, some of the parameters were increased
+- **Population size:** A larger population increases genetic diversity, which can improve the chance of finding a good solution. However it increases the computational time. (15000)
+- **Number of tournaments:** More tournaments can lead to a more robust selection process, ensuring that a diverse set of high-quality individuals are chosen. If set too low, the selection might not effectively differentiate among individuals, while too many may increase the computational overhead without proportional benefits. (6)
+- **Tournament size:** A larger tournament size increases selection pressure because it raises the probability that the best individuals (with the highest fitness) are selected. However, excessive selection pressure can reduce diversity, leading to premature convergence on suboptimal solutions. (4)
+- **Number of generations:** More generations provide the algorithm with more opportunities to evolve and improve the population, potentially yielding better solutions over time. However it also increases the runtime of the program. (5000) -- stopped changing after a while
+- The best distance was 1074.0

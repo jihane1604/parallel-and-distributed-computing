@@ -1,5 +1,6 @@
 import numpy as np
-
+import multiprocessing
+from itertools import repeat
 
 def calculate_fitness(route,
                       distance_matrix):
@@ -31,6 +32,34 @@ def calculate_fitness(route,
     # return the negative total distance to make it a fitness value (minimizing distance)
     return -total_distance
 
+def _calculate_fitness_chunk(routes_chunk, distance_matrix):
+    """
+    Helper function: compute fitness for a chunk of routes.
+    Returns a list of fitness values (negative of the calculated fitness).
+    """
+    # We return negative calculate_fitness so that lower total distances become lower numbers.
+    return [-calculate_fitness(route, distance_matrix) for route in routes_chunk]
+
+def parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_size=100):
+    """
+    Evaluate fitness values in parallel using multiprocessing with chunking.
+    
+    Parameters:
+        population (list): List of routes.
+        distance_matrix (numpy.ndarray): The distance matrix.
+        processes (int): Number of parallel processes.
+        chunk_size (int): Number of routes per task.
+        
+    Returns:
+        np.array: Array of fitness values (where lower is better).
+    """
+    # Split the population into chunks.
+    chunks = [population[i:i + chunk_size] for i in range(0, len(population), chunk_size)]
+    with multiprocessing.Pool(processes=processes) as pool:
+        chunk_results = pool.starmap(_calculate_fitness_chunk, zip(chunks, repeat(distance_matrix)))
+    # Flatten the list of results.
+    fitness_values = [fitness for chunk in chunk_results for fitness in chunk]
+    return np.array(fitness_values)
 
 def select_in_tournament(population,
                          scores,
