@@ -1,3 +1,7 @@
+"""
+This file runs the fitness calculation in parallel
+"""
+
 import numpy as np
 import pandas as pd
 from src.genetic_algorithms_functions import (
@@ -22,7 +26,7 @@ def run_parallel():
     num_tournaments = 6      # Number of tournaments to run
     tournament_size = 4
     mutation_rate = 0.1
-    num_generations = 2000
+    num_generations = 200
     infeasible_penalty = 1e6 # Penalty for infeasible routes
     stagnation_limit = 5     # Generations without improvement before regeneration
     
@@ -37,7 +41,7 @@ def run_parallel():
     # Main GA loop.
     for generation in range(num_generations):
         # Evaluate fitness in parallel using chunking.
-        calculate_fitness_values = parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_size=100)
+        calculate_fitness_values = parallel_fitness_evaluation(population, distance_matrix)
         
         # Check for improvement (lower fitness is better).
         current_best_fitness = np.min(calculate_fitness_values)
@@ -85,7 +89,7 @@ def run_parallel():
         print(f"Generation {generation}: Best fitness = {current_best_fitness}")
     
     # Final fitness evaluation and best solution selection.
-    calculate_fitness_values = parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_size=100)
+    calculate_fitness_values = parallel_fitness_evaluation(population, distance_matrix, chunk_size=100)
     best_idx = np.argmin(calculate_fitness_values)
     best_solution = population[best_idx]
     

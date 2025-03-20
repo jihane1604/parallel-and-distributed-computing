@@ -1,6 +1,8 @@
 import numpy as np
 import multiprocessing
 from itertools import repeat
+from functools import partial
+import concurrent.futures
 
 def calculate_fitness(route,
                       distance_matrix):
@@ -32,7 +34,7 @@ def calculate_fitness(route,
     # return the negative total distance to make it a fitness value (minimizing distance)
     return -total_distance
 
-def _calculate_fitness_chunk(routes_chunk, distance_matrix):
+def calculate_fitness_chunk(routes_chunk, distance_matrix):
     """
     Helper function: compute fitness for a chunk of routes.
     Returns a list of fitness values (negative of the calculated fitness).
@@ -40,7 +42,7 @@ def _calculate_fitness_chunk(routes_chunk, distance_matrix):
     # We return negative calculate_fitness so that lower total distances become lower numbers.
     return [-calculate_fitness(route, distance_matrix) for route in routes_chunk]
 
-def parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_size=100):
+def parallel_fitness_evaluation(population, distance_matrix, chunk_size=100):
     """
     Evaluate fitness values in parallel using multiprocessing with chunking.
     
@@ -55,11 +57,87 @@ def parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_
     """
     # Split the population into chunks.
     chunks = [population[i:i + chunk_size] for i in range(0, len(population), chunk_size)]
-    with multiprocessing.Pool(processes=processes) as pool:
-        chunk_results = pool.starmap(_calculate_fitness_chunk, zip(chunks, repeat(distance_matrix)))
+    
+    # Create a partial function binding the distance_matrix.
+    # Note: This requires that the original function 'calculate_fitness_chunk'
+    #       has a parameter named 'distance_matrix'.
+    partial_func = partial(calculate_fitness_chunk, distance_matrix=distance_matrix)
+    
+    # with multiprocessing.Pool(processes = 12) as pool:
+    #     # chunk_results = pool.starmap_async(calculate_fitness_chunk, zip(chunks, repeat(distance_matrix))).get()
+    #     chunk_results = pool.map_async(partial_func, chunks).get()
+
+    # Use ProcessPoolExecutor to process the chunks in parallel.
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+        # executor.map returns results in order corresponding to the input chunks.
+        chunk_results = list(executor.map(partial_func, chunks))
+        
     # Flatten the list of results.
     fitness_values = [fitness for chunk in chunk_results for fitness in chunk]
     return np.array(fitness_values)
+
+def run_ga_on_subpopulation(subpop, distance_matrix, num_generations, stagnation_limit,
+                             tournament_size, mutation_rate, num_nodes, num_tournaments):
+    """
+    Run the genetic algorithm on a given subpopulation for num_generations.
+    If stagnation occurs, the subpopulation is regenerated while preserving the top 10 individuals.
+    At the end, the best individual from the subpopulation is returned.
+    """
+    best_overall_fitness = 1e6
+    stagnation_counter = 0
+
+    for generation in range(num_generations):
+        # Evaluate fitness for the subpopulation (lower is better)
+        fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in subpop])
+        current_best_fitness = np.min(fitness_values)
+        if current_best_fitness < best_overall_fitness:
+            best_overall_fitness = current_best_fitness
+            stagnation_counter = 0
+        else:
+            stagnation_counter += 1
+
+        # Regenerate subpopulation if stagnation is reached, preserving the top 10 individuals.
+        if stagnation_counter >= stagnation_limit:
+            best_indices = np.argsort(fitness_values)[:10]
+            best_individuals = [subpop[i] for i in best_indices]
+            new_subpop = generate_unique_population(len(subpop) - 10, num_nodes)
+            subpop = new_subpop + best_individuals
+            stagnation_counter = 0
+            continue
+
+        # Tournament Selection on this subpopulation.
+        selected = select_in_tournament(subpop, fitness_values,
+                                        number_tournaments=num_tournaments,
+                                        tournament_size=tournament_size)
+
+        # Crossover: pair the selected individuals (if odd, the last is skipped).
+        offspring = []
+        for i in range(0, len(selected) - 1, 2):
+            parent1, parent2 = selected[i], selected[i + 1]
+            # Exclude the fixed starting node for crossover.
+            child_route = order_crossover(parent1[1:], parent2[1:])
+            offspring.append([0] + child_route)
+
+        # Mutate the offspring.
+        mutated_offspring = [mutate(route, mutation_rate) for route in offspring]
+
+        # Replacement: Replace the worst individuals with the mutated offspring.
+        indices_to_replace = np.argsort(fitness_values)[::-1][:len(mutated_offspring)]
+        for j, idx in enumerate(indices_to_replace):
+            subpop[idx] = mutated_offspring[j]
+
+        # Ensure uniqueness within the subpopulation.
+        unique_subpop = set(tuple(ind) for ind in subpop)
+        while len(unique_subpop) < len(subpop):
+            new_ind = [0] + list(np.random.permutation(np.arange(1, num_nodes)))
+            unique_subpop.add(tuple(new_ind))
+        subpop = [list(ind) for ind in unique_subpop]
+
+    # After all generations, return the best individual from this subpopulation.
+    fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in subpop])
+    best_idx = np.argmin(fitness_values)
+    best_individual = subpop[best_idx]
+    return best_individual
 
 def select_in_tournament(population,
                          scores,

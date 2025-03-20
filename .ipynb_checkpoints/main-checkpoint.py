@@ -1,5 +1,5 @@
 from genetic_algorithm_trial import run_seq
-from trial import run_parallel
+from island_mode import run_parallel
 
 seq_time = run_seq()
 parallel_time = run_parallel()

@@ -1,3 +1,7 @@
+"""
+This file runs the fitness calculation, tournament selection, offspring crossover, and offspring mutation in parallel and collects them every generation
+"""
+
 import numpy as np
 import pandas as pd
 import time
@@ -107,7 +111,7 @@ def run_parallel():
             print(f"Regenerating population at generation {generation} due to stagnation")
             best_indices = np.argsort(fitness_values)[:10]
             best_individuals = [population[i] for i in best_indices]
-            new_pop = generate_unique_population(population_size - 10, num_nodes)
+            new_pop = generate_unique_population(population_size - 10, num_nodes, past_routes)
             past_routes.extend(new_pop)
             population = new_pop + best_individuals
             stagnation_counter = 0

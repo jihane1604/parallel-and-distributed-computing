@@ -39,6 +39,11 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
 - This resulted in a much slower execution time of *90.12 seconds* compared to the sequential time of *23.50 seconds*. We can assume that this is due to the process management overhead (just like in part one of the assignment).
 - Speedup: 0.26
 - Efficiency: 0.04
+- **Island genetic algorithm:** The second approach was to perform the GA loop for each sub population and let it undergo the evolutionary process, the best solution from each sub population is collected and compared, with the overall best solution selected as the final outcome. This strategy, often referred to as an island genetic algorithm, leverages parallel processing to improve computational efficiency while still adhering to the fundamental principles of genetic algorithms.
+- This resulted in a much faster execution time of *5.78 seconds* running for 300 generation
+- Speedup: 2.66
+- Efficiency: 0.44
+- When running this version for 30,000 generations, the best solution was 1050 wtih an execution time of *391 seconds*
 - **Distributed using MPI4PY:**
 
 ## Improvements of the genetic algorithm
@@ -48,4 +53,11 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
 - **Tournament size:** A larger tournament size increases selection pressure because it raises the probability that the best individuals (with the highest fitness) are selected. However, excessive selection pressure can reduce diversity, leading to premature convergence on suboptimal solutions. (4)
 - **Number of generations:** More generations provide the algorithm with more opportunities to evolve and improve the population, potentially yielding better solutions over time. However it also increases the runtime of the program. (3000) -- stopped changing after a while
 - The best distance was 1050.0 (achieved starting from the 2255th generation)
-- execution time = 237.48 seconds 
+- execution time = 237.48 seconds
+
+- **Performance metrics:**
+- Sequential time: 14.80 seconds
+- Parallel time: 5.56 seconds
+- Speedup: 4.04
+- Efficiency: 0.67
+- We can conclud that the enhancements improved the efficiency of the paralllization probably due to the fact that the sequential version is slower due to teh enhancements (more tournaments and higher population)
