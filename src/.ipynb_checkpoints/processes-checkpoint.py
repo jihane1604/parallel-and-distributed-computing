@@ -3,7 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 import time
 from src.utils import square
 
-# helper function fro processes
+# helper function for processes
 def worker(num, results_queue):
     """
     Helper function for processing a single number in a separate process.
@@ -15,6 +15,10 @@ def worker(num, results_queue):
         results_queue (multiprocessing.Queue): The queue to store the computed result.
     """
     results_queue.put(square(num))
+
+# Helper function that computes the squares for a chunk of numbers.
+def square_chunk(chunk):
+    return [square(x) for x in chunk]
 
 # function to loop through the numbers and create a seperate process for each one
 def run_loop_processes(n = 6):
@@ -140,6 +144,28 @@ def run_pool_apply(n = 6):
     print(f"The last results is: {results[-1]}")
     return end_time - start_time
 
+# function to use process pools with apply and chunking
+def run_pool_apply_chunk(n=6, chunk_size=1000):
+    """
+    Use a multiprocessing Pool with the apply() method and chunking to compute the squares of
+    numbers in a range of 10^n numbers, and measure the total processing time.
+    """
+    start_time = time.time()
+    numbers = [i for i in range(10 ** n)]
+    chunks = [numbers[i:i + chunk_size] for i in range(0, len(numbers), chunk_size)]
+    
+    results = []
+    with multiprocessing.Pool(processes=6) as pool:
+        for chunk in chunks:
+            # Process each chunk using apply (synchronously).
+            chunk_result = pool.apply(square_chunk, (chunk,))
+            results.append(chunk_result)
+    
+    results = [item for sublist in results for item in sublist]
+    print(f"The last result is: {results[-1]}")
+    end_time = time.time()
+    return end_time - start_time
+
 # function to use process pools with apply_async
 def run_pool_apply_async(n = 6):
     """
@@ -168,6 +194,25 @@ def run_pool_apply_async(n = 6):
     print(f"The last results is: {results[-1]}")
     return end_time - start_time
 
+# function to use process pools with apply_async and chunking
+def run_pool_apply_async_chunk(n=6, chunk_size=1000):
+    """
+    Use a multiprocessing Pool with the asynchronous apply (apply_async) method and chunking to compute
+    the squares of numbers in a range of 10^n numbers, and measure the total processing time.
+    """
+    start_time = time.time()
+    numbers = [i for i in range(10 ** n)]
+    chunks = [numbers[i:i + chunk_size] for i in range(0, len(numbers), chunk_size)]
+    
+    with multiprocessing.Pool(processes=6) as pool:
+        async_results = [pool.apply_async(square_chunk, (chunk,)) for chunk in chunks]
+        results = [r.get() for r in async_results]
+    
+    results = [item for sublist in results for item in sublist]
+    print(f"The last result is: {results[-1]}")
+    end_time = time.time()
+    return end_time - start_time
+    
 # function to use the process pool executor
 def run_executor(n = 6):
     """

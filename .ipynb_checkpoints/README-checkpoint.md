@@ -22,8 +22,8 @@ The assignment has two major parts:
    **Results n = 6:**
    - **Sequential execution time** 0.10 seconds
    - **Multiprocessing loop execution time** -- seconds -- an error occurs
-   - **Apply execution time:** 168.69 seconds
-   - **Apply_async execution time:** 170.04 seconds
+   - **Apply execution time:** Before chunking: 168.69 seconds - After chunking: 1.07 seconds
+   - **Apply_async execution time:** Before chunking: 170.04 seconds - After chunking: 0.43 seconds
    - **Map execution time:** 0.17 seconds
    - **Map_async execution time:** 0.18 seconds
    - **ProcessPoolExecutor execution time:** Before chunking: 111.28 seconds - After chunking: 0.31 seconds
@@ -31,8 +31,8 @@ The assignment has two major parts:
    **Results n = 7:**
    - **Sequential execution time** 1.15 seconds
    - **Multiprocessing loop execution time** -- seconds -- an error occurs
-   - **Apply execution time:** 1749.47 seconds
-   - **Apply_async execution time:** 1760.59 seconds
+   - **Apply execution time:** Before chunking: 1749.47 seconds - After chunking: 5.33 seconds
+   - **Apply_async execution time:** Before chunking: 1760.59 seconds - After chunking 3.04 seconds
    - **Map execution time:** 1.56 seconds
    - **Map_async execution time:** 1.55 seconds
    - **ProcessPoolExecutor execution time:** Before chunking: 1116.72 seconds - After chunking: 3.20 seconds
@@ -89,12 +89,12 @@ The assignment has two major parts:
 
 - **Square Computations:**
     - **Sequential vs. Multiprocessing:**
-        For simple operations like squaring a number, the sequential approach is very efficient. Multiprocessing introduces overhead due to process creation and interprocess communication.
+        For simple operations like squaring a number, the sequential approach is very efficient. Multiprocessing introduces overhead due to process creation and interprocess communication, so we can conclude that it is useless to parallelize such operations.
  
     - **Multiprocessing loop:**
         The error `OSError: [Errno 24] Too many open files` occurs because were creating a new process for every number, which opens many file descriptors simultaneously, quickly exceeding the operating system’s limit on open files.
-
-    - **Multiprocessing Pool Efficiency:**
+ 
+    - **Multiprocessing Pool Map Efficiency:**
         The Pool’s `map()` and `map_async()` methods significantly reduce the overhead by reusing a fixed number of worker processes. On the other hand, `apply()` and `apply_async()` are much slower because they submit tasks one at a time.
 
     - **ProcessPoolExecutor**:
@@ -102,6 +102,10 @@ The assignment has two major parts:
         In contrast, the `multiprocessing.Pool.map()` and `map_async()` methods automatically calculate an efficient chunk size, grouping many numbers together in each task submission. This reduces the overhead by paying off the cost of interprocess communication over many tasks.
         When using chunking, instead of incurring the overhead for each individual task, the overhead is incurred once per batch, meaning that fewer, larger data transfers occur between processes, and fewer tasks overall.
         In conclusion, because the ProcessPoolExecutor processes each tiny task individually, its overhead becomes very significant relative to the fast execution of the `square()` function, leading to much longer execution times. Chunking transforms that issue by efficiently handling the computational work by each worker process.
+ 
+    - **Multiprocessing Pool Apply Efficiency:**
+        Similarly to the `ProcessPoolExecutor`, the `apply()` and `apply_async()` functions create interprocess communication overhead by sending one task at a time for each process. This can also be mitigated by using chunking just like before, which resukts in much faster execution times. However, it's still slightly slower than running the program sequentially.
+ 
 
 - **Semaphore and Connection Pool:**
 
