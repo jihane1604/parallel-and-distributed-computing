@@ -21,7 +21,7 @@ The assignment has two major parts:
 
    **Results n = 6:**
    - **Sequential execution time** 0.10 seconds
-   - **Multiprocessing loop execution time** -- seconds
+   - **Multiprocessing loop execution time** -- seconds -- an error occurs
    - **Apply execution time:** 168.69 seconds
    - **Apply_async execution time:** 170.04 seconds
    - **Map execution time:** 0.17 seconds
@@ -30,7 +30,7 @@ The assignment has two major parts:
 
    **Results n = 7:**
    - **Sequential execution time** 1.15 seconds
-   - **Multiprocessing loop execution time** -- seconds
+   - **Multiprocessing loop execution time** -- seconds -- an error occurs
    - **Apply execution time:** 1749.47 seconds
    - **Apply_async execution time:** 1760.59 seconds
    - **Map execution time:** 1.56 seconds
@@ -90,6 +90,9 @@ The assignment has two major parts:
 - **Square Computations:**
     - **Sequential vs. Multiprocessing:**
         For simple operations like squaring a number, the sequential approach is very efficient. Multiprocessing introduces overhead due to process creation and interprocess communication.
+ 
+    - **Multiprocessing loop:**
+        The error `OSError: [Errno 24] Too many open files` occurs because were creating a new process for every number, which opens many file descriptors simultaneously, quickly exceeding the operating system’s limit on open files.
 
     - **Multiprocessing Pool Efficiency:**
         The Pool’s `map()` and `map_async()` methods significantly reduce the overhead by reusing a fixed number of worker processes. On the other hand, `apply()` and `apply_async()` are much slower because they submit tasks one at a time.
