@@ -14,10 +14,10 @@ def run_seq():
     # Parameters
     num_nodes = distance_matrix.shape[0]
     population_size = 15000
-    num_tournaments = 6  # Number of tournaments to run
+    num_tournaments = 10  # Number of tournaments to run
     tournament_size = 4 # number of participating individuals
     mutation_rate = 0.1
-    num_generations = 3000
+    num_generations = 300
     infeasible_penalty = 1e6  # Penalty for infeasible routes
     stagnation_limit = 5  # Number of generations without improvement before regeneration
     
@@ -25,7 +25,7 @@ def run_seq():
     # Generate initial population: each individual is a route starting at node 0
     np.random.seed(42)  # For reproducibility
     population = generate_unique_population(population_size, num_nodes)
-    
+    past_routes = population
     # Initialize variables for tracking stagnation
     best_calculate_fitness = int(1e6)
     stagnation_counter = 0
@@ -46,9 +46,11 @@ def run_seq():
         # Regenerate population if stagnation limit is reached, keeping the best individual
         if stagnation_counter >= stagnation_limit:
             print(f"Regenerating population at generation {generation} due to stagnation")
-            best_individual = population[np.argmin(calculate_fitness_values)]
-            population = generate_unique_population(population_size - 1, num_nodes)
-            population.append(best_individual)
+            best_indices = np.argsort(calculate_fitness_values)[:10]
+            best_individuals = [population[i] for i in best_indices]
+            population = generate_unique_population(population_size - 10, num_nodes)
+            past_routes.extend(population)
+            population.extend(best_individuals)
             stagnation_counter = 0
             continue  # Skip the rest of the loop for this generation
     
@@ -92,4 +94,4 @@ def run_seq():
 
     return end_time - start_time
 
-run_seq()
+# run_seq()

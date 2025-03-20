@@ -129,7 +129,7 @@ def mutate(route,
         route[i], route[j] = route[j], route[i]
     return route
 
-def generate_unique_population(population_size, num_nodes):
+def generate_unique_population(population_size, num_nodes, past_routes = []):
     """
     Generate a unique population of individuals for a genetic algorithm.
 
@@ -144,8 +144,13 @@ def generate_unique_population(population_size, num_nodes):
     Returns:
         - list of lists: A list of unique individuals, where each individual is represented as a list of node indices.
     """
+    past_routes_set = set(tuple(route) for route in past_routes)
     population = set()
     while len(population) < population_size:
         individual = [0] + list(np.random.permutation(np.arange(1, num_nodes)))
-        population.add(tuple(individual))
+        tup = tuple(individual)
+        # If the individual is already in past_routes, skip it.
+        if tup in past_routes_set:
+            continue
+        population.add(tup)
     return [list(ind) for ind in population]

@@ -18,10 +18,11 @@ def run_parallel():
     
     # Parameters
     num_nodes = distance_matrix.shape[0]
-    population_size = 10000
-    num_tournaments = 4      # Number of tournaments to run
+    population_size = 15000
+    num_tournaments = 6      # Number of tournaments to run
+    tournament_size = 4
     mutation_rate = 0.1
-    num_generations = 200
+    num_generations = 2000
     infeasible_penalty = 1e6 # Penalty for infeasible routes
     stagnation_limit = 5     # Generations without improvement before regeneration
     
@@ -56,7 +57,10 @@ def run_parallel():
             continue  # Skip further operations this generation
     
         # Selection, crossover, and mutation.
-        selected = select_in_tournament(population, calculate_fitness_values, number_tournaments=num_tournaments, tournament_size=3)
+        selected = select_in_tournament(population,
+                                        calculate_fitness_values,
+                                        num_tournaments,
+                                        tournament_size)
         offspring = []
         # Process pairs of selected individuals.
         for i in range(0, len(selected), 2):
@@ -78,7 +82,7 @@ def run_parallel():
             unique_population.add(tuple(individual))
         population = [list(individual) for individual in unique_population]
     
-        # print(f"Generation {generation}: Best fitness = {current_best_fitness}")
+        print(f"Generation {generation}: Best fitness = {current_best_fitness}")
     
     # Final fitness evaluation and best solution selection.
     calculate_fitness_values = parallel_fitness_evaluation(population, distance_matrix, processes=6, chunk_size=100)
@@ -89,6 +93,8 @@ def run_parallel():
     
     print("Best Solution:", best_solution)
     print("Total Distance:", -calculate_fitness(best_solution, distance_matrix))
-    # print("Total time taken:", end_time - start_time)
+    print("Total time taken:", end_time - start_time)
     
     return end_time - start_time
+
+run_parallel()
