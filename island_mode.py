@@ -22,14 +22,14 @@ def run_parallel():
     start_time = time.time()
     
     # Load the distance matrix.
-    distance_matrix = pd.read_csv('data/city_distances_extended.csv').to_numpy()
+    distance_matrix = pd.read_csv('data/city_distances.csv').to_numpy()
     
     # Parameters.
     num_nodes = distance_matrix.shape[0]
     population_size = 15000
     tournament_size = 4         # individuals per tournament
     mutation_rate = 0.1
-    num_generations = 300
+    num_generations = 3000
     stagnation_limit = 5
     num_tournaments = 10        # tournaments per subpopulation (can adjust as needed)
     

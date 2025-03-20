@@ -17,7 +17,7 @@ def run_seq():
     num_tournaments = 10  # Number of tournaments to run
     tournament_size = 4 # number of participating individuals
     mutation_rate = 0.1
-    num_generations = 300
+    num_generations = 3000
     infeasible_penalty = 1e6  # Penalty for infeasible routes
     stagnation_limit = 5  # Number of generations without improvement before regeneration
     

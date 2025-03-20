@@ -85,7 +85,6 @@ def run_ga_on_subpopulation(subpop, distance_matrix, num_generations, stagnation
     """
     best_overall_fitness = 1e6
     stagnation_counter = 0
-
     for generation in range(num_generations):
         # Evaluate fitness for the subpopulation (lower is better)
         fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in subpop])
@@ -132,6 +131,7 @@ def run_ga_on_subpopulation(subpop, distance_matrix, num_generations, stagnation
             new_ind = [0] + list(np.random.permutation(np.arange(1, num_nodes)))
             unique_subpop.add(tuple(new_ind))
         subpop = [list(ind) for ind in unique_subpop]
+        print(f"Generation {generation}: Best calculate_fitness = {current_best_fitness}")
 
     # After all generations, return the best individual from this subpopulation.
     fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in subpop])
