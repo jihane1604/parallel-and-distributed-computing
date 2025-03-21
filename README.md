@@ -60,12 +60,16 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
 
 ## Running on AWS
 - I created 3 instances on aws following the tutorial on d2l. Then I created a script `install_anaconda.sh` which installs anaconda and another script `mpi_installation.sh` to install  mpi4py. I initially had everything in one script but I was running into issues while creating the environment so i had to do that manually and separate each step into a different bash script. I copied these files to the other machines using `scp` and ran them on each. I clone the GitHub repo only in the first machine (host) and pulled the assignment branch, the copied the `distributed_folder` to my root folder, changed the machines.txt ips and ran it on all my machines. The bash scripts can be found in the aws folder.
-- HOWEVER, I ran into some issues AGAIN this time when running the mpi4py across the machines i kept getting the error `Host key verification failed`
+- HOWEVER, I ran into some issues AGAIN this time when running the mpi4py across the machines i kept getting the error `Host key verification failed` even though I ran the command `ssh-copy-id ubuntu@XXXX` for each machine.
 - ![Host key verification error.](/image/error1.png "Error.")
 - I tried fixing it by running `ssh-keyscan -H public_ip >> ~/.ssh/known_hosts` in each machine with the public ip of all the hosts, but I still got the same error so I tried using the private ip address instead and I got disconnected from all the machines
 - ![Disconnected error.](/image/error2.png "Error.")
-- And this is what was displayed on aws idk what I did wrong but pls appreciate the effort :(
+- And this is what was displayed on aws
 - ![Error on aws.](/image/error3.png "Error.")
+- And then I tried to create a new instance to try running it again but it wouldnt let me make one :'(
+- ![Error on aws.](/image/error6.png "Error.")
+- ![Error on aws.](/image/error5.png "Error.")
+- ![Error on aws.](/image/error4.png "Error.")
 
 ## Improvements of the genetic algorithm
 - After further investigating the genetic algorithm, some of the parameters were increased
