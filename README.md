@@ -7,12 +7,10 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
 ## Explanation of the `genetic_algorithm_trial` code:
 
 - **Data Loading:**
-  - Reads a distance matrix from a CSV file (`city_distances.csv`) where each entry represents the distance between nodes, then turns it into a numpy array.
-  
+  - Reads a distance matrix from a CSV file (`city_distances.csv`) where each entry represents the distance between nodes, then turns it into a numpy array.  
 - **Population Initialization:**
   - Sets parameters: number of nodes, population size, number of tournaments, mutation rate, number of generations, stagnation limit and a large infeasability penealty.
   - Generates an initial population of 10,000 unique routes starting from node 0.
-
 - **Main GA Loop (for each generation):**
   - Loop through the number of generations and do the following for each generation
   - **Fitness Calculation:** Calculate the fitness values for the each individual node in the population.
@@ -23,7 +21,6 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
     - Mutate the offspring routes based on a defined mutation rate.
   - **Replacement:** Replace the worst individuals with the new mutated offspring.
   - **Uniqueness Maintenance:** Ensure the population remains unique by generating new individuals if necessary.
-
 - **Final Output:**
   - Evaluates the final population to select and print the best route and its total distance.
   - Measures and prints the total execution time.
@@ -58,6 +55,15 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
     - Best distance: 1041
     - Execution time: 15.21
 - **Bash file:** The folder also contains a bash file to run, which copies the folder to the other machines and runs the python file.
+
+## Running on AWS
+- I created 3 instances on aws following the tutorial on d2l. Then I created a script `install_anaconda.sh` which installs anaconda and another script `mpi_installation.sh` to install  mpi4py. I initially had everything in one script but I was running into issues while creating the environment so i had to do that manually and separate each step into a different bash script. I copied these files to the other machines using `scp` and ran them on each. I clone the GitHub repo only in the first machine (host) and pulled the assignment branch, the copied the `distributed_folder` to my root folder, changed the machines.txt ips and ran it on all my machines. The bash scripts can be found in the aws folder.
+- HOWEVER, I ran into some issues AGAIN this time when running the mpi4py across the machines i kept getting the error `Host key verification failed`
+- ![Host key verification error.](/image/error1.png "Error.")
+- I tried fixing it by running `ssh-keyscan -H public_ip >> ~/.ssh/known_hosts` in each machine with the public ip of all the hosts, but I still got the same error so I tried using the private ip address instead and I got disconnected from all the machines
+- ![Disconnected error.](/image/error2.png "Error.")
+- And this is what was displayed on aws idk what I did wrong but pls appreciate the effort :(
+- ![Error on aws.](/image/error3.png "Error.")
 
 ## Improvements of the genetic algorithm
 - After further investigating the genetic algorithm, some of the parameters were increased
