@@ -54,6 +54,8 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
     - The best solution from each process is gathered using `comm.gather()`, and the master chooses the overall best solution based on fitness. This doesnt guarantee to have the best optimal solution as it changes with every run.
     - Best distance: 1041
     - Execution time: 15.21
+    - Speedup: 15.55
+    - Efficiency: 0.86 (since its running on 18 processors instead of 6)
 - **Bash file:** The folder also contains a bash file to run, which copies the folder to the other machines and runs the python file.
 
 ## Running on AWS
