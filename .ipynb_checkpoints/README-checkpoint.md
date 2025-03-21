@@ -55,8 +55,8 @@ This program implements a genetic algorithm (GA) to solve a routing problem (Tra
     - Each process runs the GA on its subpopulation using `run_ga_on_subpopulation()`, which runs for all generations.
 - **Gathering and Final Selection:**
     - The best solution from each process is gathered using `comm.gather()`, and the master chooses the overall best solution based on fitness. This doesnt guarantee to have the best optimal solution as it changes with every run.
-    - Best distance: 1058
-    - Execution time: 16.03
+    - Best distance: 1041
+    - Execution time: 15.21
 - **Bash file:** The folder also contains a bash file to run, which copies the folder to the other machines and runs the python file.
 
 ## Improvements of the genetic algorithm
