@@ -28,20 +28,36 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
   - Evaluates the final population to select and print the best route and its total distance.
   - Measures and prints the total execution time.
 
-## Parallelizing and distribution the code 
+## Parallelizing the code 
 - **Fitness Evaluation:** Each individual's fitness is computed by summing the distances along its route. Since the fitness of one route is independent of another, the population can be split among multiple processes/machines. Each process/machine computes fitness for its subset of routes in parallel, which reduces the overall computation time when the population size is large.
 - **Genetic Operators:** Atfer chunking the population into sevral (100) sub populations. For each one, the tournament selection, crossover and mutation is performed then collected after each generation.
-- **Multiprocessing pools:** As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple processors on a single machine.
+- **Multiprocessing pools `multiprocessing_ver.py` file:** As a first trial, `multiprocessing.pool()` was used with `starmap_async` in order to parallelize the task across multiple processors on a single machine.
 - This resulted in a much slower execution time of *__90.12 seconds__* compared to the sequential time of *__23.50 seconds__* when running it for 300 generations. We can assume that this is due to the process management overhead (just like in part one of the assignment).
 - I tried with the default number of processes, with 12 processes, with starmap, with map, with map_async, with apply, with apply_async and with ProcessPoolExecutor all with diffrent amount of workers/processes but each time it was slowert than the sequential version :( 
 - Speedup: 0.26
 - Efficiency: 0.04
-- **Island genetic algorithm:** The second approach was to perform the GA loop for each sub population and let it undergo the evolutionary process, the best solution from each sub population is collected and compared, with the overall best solution selected as the final outcome. This strategy, is called an island genetic algorithm.
+- **Island genetic algorithm `island_mode.py` file:** The second approach was to perform the GA loop for each sub population and let it undergo the evolutionary process, the best solution from each sub population is collected and compared, with the overall best solution selected as the final outcome. This strategy, is called an island genetic algorithm; however, it doesnt guarantee to achieve the absolute opti;al solution.
 - This resulted in a much faster execution time of *__5.78 seconds__* compared to the sequential time of *__14.78 seconds__* when running for 300 generation.
 - Speedup: 2.66
 - Efficiency: 0.44
 - When running this version for 30,000 generations, the best solution was 1050 wtih an execution time of *__391 seconds__*
-- **Distributed using MPI4PY:**
+
+## Distributing using MPI4PY:
+- **`distributed folder`:** The distribution of the program was done using the island mode approach, and was run on 3 machines. This folder contains the files that were copied over to the other machines.
+- **Data Distribution:**
+    - The master (rank 0) loads the distance matrix and sets GA parameters, other ranks initiate them to None.
+    - The initial population is generated and split into as many chunks as there are MPI processes (using scatter).
+- **Broadcasting:**
+    - The parameters are broadcast to all the other machines using `comm.bcast()`.
+- **Scattering:**
+    - Each process receives one subpopulation using `comm.scatter()`.
+- **Local Evolution:**
+    - Each process runs the GA on its subpopulation using `run_ga_on_subpopulation`, which runs for all generations.
+- **Gathering and Final Selection:**
+    - The best solution from each process is gathered using `comm.gather()`, and the master chooses the overall best solution based on fitness. This doesnt guarantee to have the best optimal solution as it changes with every run.
+    - Best distance: 1058
+    - Execution time: 16.03
+- **Bash file:** The folder also contains a bash file to run, which copies the folder to the other machines and runs the python file.
 
 ## Improvements of the genetic algorithm
 - After further investigating the genetic algorithm, some of the parameters were increased
@@ -52,6 +68,7 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
 - **Stagnation:** The stagnation rate was also changed by keeping the top 10 best individuals instead of only the top 1.
 - The best distance was 1050.0
 - execution time = *__237.48 seconds__*
+- **Possible approach**: Another way to improve the algorithm is to keep track of the previously generated nodes using a list or a set, and when generating a new population, ensure that the individuals generated do not already exist. This ensures the absolute uniqueness of each individual in the population throughout the generations; however, when i tried implementing it, it was introducing a lot of overhead without necessarily arriving to a better minimum path (ran for 3000 generations and arrived to the same minimum path) so i decided to not keep this solution.
 
 - **Performance metrics:**
 - Sequential time: 236.59 seconds
@@ -76,7 +93,7 @@ This program implements a genetic algorithm (GA) to solve a routing problem (e.g
 - Prins, C. (2003). A simple and effective evolutionary algorithm for the vehicle routing problem. Computers & Operations Research, 31(12), 1985–2002. https://doi.org/10.1016/s0305-0548(03)00158-8
 - Ochelska-Mierzejewska, J., Poniszewska-Marańda, A., & Marańda, W. (2021). Selected genetic algorithms for vehicle routing problem solving. Electronics, 10(24), 3147. https://doi.org/10.3390/electronics10243147
 
-- **Implementation:**
+- **Implementation in `vrp.py` file:**
     - **split_chromosome:** Splits a given chromosome (a permutation of client nodes) into a sequence of feasible trips. It uses dynamic programming to compute the minimum total cost (including depot-to-client and client-to-depot distances) while ensuring each trip satisfies the vehicle capacity.
 
     - **calculate_fitness_vrp:** A wrapper that returns the fitness (total cost) of a chromosome by calling split_chromosome. Lower fitness values indicate better solutions.
