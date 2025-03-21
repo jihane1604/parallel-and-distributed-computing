@@ -2,10 +2,7 @@
 
 This repository contains a set of Python programs developed as part of the DSAI 3202 course on parallel and distributed computing. The assignment explores various multiprocessing techniques and process synchronization using semaphores.
 
----
-
 ## Overview
-
 The assignment has two major parts:
 
 1. **Square Program**  
@@ -55,10 +52,7 @@ The assignment has two major parts:
      - Releases the connection.
    - When more processes than available connections try to access the pool, the semaphore forces the extra processes to wait until a connection is released. This prevents race conditions and ensures safe access to the shared resource.
 
----
-
 ## Project Structure
-
 - **`src/utils.py`**  
   Contains the `square()` function which computes the square of a given integer.
 
@@ -83,34 +77,25 @@ The assignment has two major parts:
 - **`semaphore_testing.py`**  
   Implements the `ConnectionPool` class and the `access_database()` function to demonstrate process synchronization with semaphores. It shows how a limited pool of connections (e.g., 3 connections) is managed when more processes (e.g., 6) attempt to access the pool concurrently.
 
----
-
 ## Discussion and Conclusions
-
 - **Square Computations:**
     - **Sequential vs. Multiprocessing:**
-        For simple operations like squaring a number, the sequential approach is very efficient. Multiprocessing introduces overhead due to process creation and interprocess communication, so we can conclude that it is useless to parallelize such operations.
- 
+        - For simple operations like squaring a number, the sequential approach is very efficient. Multiprocessing introduces overhead due to process creation and interprocess communication, so we can conclude that it is useless to parallelize such operations.
     - **Multiprocessing loop:**
-        The error `OSError: [Errno 24] Too many open files` occurs because were creating a new process for every number, which opens many file descriptors simultaneously, quickly exceeding the operating system’s limit on open files.
- 
+        - The error `OSError: [Errno 24] Too many open files` occurs because were creating a new process for every number, which opens many file descriptors simultaneously, quickly exceeding the operating system’s limit on open files.
     - **Multiprocessing Pool Map Efficiency:**
-        The Pool’s `map()` and `map_async()` methods significantly reduce the overhead by reusing a fixed number of worker processes. On the other hand, `apply()` and `apply_async()` are much slower because they submit tasks one at a time.
-
+        - The Pool’s `map()` and `map_async()` methods significantly reduce the overhead by reusing a fixed number of worker processes. On the other hand, `apply()` and `apply_async()` are much slower because they submit tasks one at a time.
     - **ProcessPoolExecutor**:
-        When you call `executor.map()` without specifying a chunk size, it typically sends one task at a time to the worker processes. Since each task (computing the square) is very trivial, the accumulated overhead of task scheduling, serialization and deserialization and interprocess communicatoin takes up all the execution time.
-        In contrast, the `multiprocessing.Pool.map()` and `map_async()` methods automatically calculate an efficient chunk size, grouping many numbers together in each task submission. This reduces the overhead by paying off the cost of interprocess communication over many tasks.
-        When using chunking, instead of incurring the overhead for each individual task, the overhead is incurred once per batch, meaning that fewer, larger data transfers occur between processes, and fewer tasks overall.
-        In conclusion, because the ProcessPoolExecutor processes each tiny task individually, its overhead becomes very significant relative to the fast execution of the `square()` function, leading to much longer execution times. Chunking transforms that issue by efficiently handling the computational work by each worker process.
- 
+        - When you call `executor.map()` without specifying a chunk size, it typically sends one task at a time to the worker processes. Since each task (computing the square) is very trivial, the accumulated overhead of task scheduling, serialization and deserialization and interprocess communicatoin takes up all the execution time.
+        - In contrast, the `multiprocessing.Pool.map()` and `map_async()` methods automatically calculate an efficient chunk size, grouping many numbers together in each task submission. This reduces the overhead by paying off the cost of interprocess communication over many tasks.
+        - When using chunking, instead of incurring the overhead for each individual task, the overhead is incurred once per batch, meaning that fewer, larger data transfers occur between processes, and fewer tasks overall.
+        - In conclusion, because the ProcessPoolExecutor processes each tiny task individually, its overhead becomes very significant relative to the fast execution of the `square()` function, leading to much longer execution times. Chunking transforms that issue by efficiently handling the computational work by each worker process.
     - **Multiprocessing Pool Apply Efficiency:**
-        Similarly to the `ProcessPoolExecutor`, the `apply()` and `apply_async()` functions create interprocess communication overhead by sending one task at a time for each process. This can also be mitigated by using chunking just like before, which resukts in much faster execution times. However, it's still slightly slower than running the program sequentially.
- 
-
+        - Similarly to the `ProcessPoolExecutor`, the `apply()` and `apply_async()` functions create interprocess communication overhead by sending one task at a time for each process. This can also be mitigated by using chunking just like before, which resukts in much faster execution times. However, it's still slightly slower than running the program sequentially. 
 - **Semaphore and Connection Pool:**
-
     - When more processes request connections than are available, the semaphore blocks the extra processes until a connection is freed. This ensures that only a limited number of processes (equal to the number of connections) access the resource concurrently.
-
     - The use of a shared list (managed via `multiprocessing.Manager`) and a lock guarantees that the connection pool is modified safely, avoiding race conditions.
-
     - This pattern is useful in real-world applications to manage scarce resources (like database connections) in a concurrent environment.
+
+## Test files
+- Test files were added in the `tests` folder for each function in the different src files to ensure the correct outputs.
