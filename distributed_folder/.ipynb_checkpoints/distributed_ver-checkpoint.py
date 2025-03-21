@@ -9,6 +9,26 @@ from genetic_algorithms_functions import (
 )
 
 def run_mpi():
+    """
+    Execute the genetic algorithm in parallel using MPI.
+
+    This function uses the Message Passing Interface (MPI) to distribute the workload
+    of a genetic algorithm (GA) across multiple processes. The master process (rank 0)
+    performs the following tasks:
+      - Loads a CSV file containing a distance matrix (the CSV file must include the depot as row/column 0).
+      - Initializes GA parameters including population size, tournament size, mutation rate,
+        number of generations, stagnation limit, and tournaments per subpopulation.
+      - Generates an initial unique population and splits it among all available processes.
+    Non-master processes receive the GA parameters via broadcast, then run the GA on their
+    assigned subpopulation by calling `run_ga_on_subpopulation`. The best solution from each
+    process is gathered on the master process, which then determines the overall best solution
+    and prints detailed results including the best solution from each subpopulation, overall best
+    route, total distance, and total execution time.
+
+    Returns:
+        float or None: Returns the total time taken (in seconds) if executed by the master process (rank 0),
+                       otherwise returns None for non-master processes.
+    """
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()

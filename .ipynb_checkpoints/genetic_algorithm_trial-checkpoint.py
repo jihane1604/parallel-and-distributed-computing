@@ -1,3 +1,7 @@
+"""
+This "file" implements a sequential version of a genetic algorithm for routing problems
+"""
+
 import numpy as np
 import pandas as pd
 from src.genetic_algorithms_functions import calculate_fitness, \
@@ -6,6 +10,17 @@ from src.genetic_algorithms_functions import calculate_fitness, \
 import time
 
 def run_seq():
+    """
+    Run a sequential genetic algorithm for route optimization.
+
+    The function loads a distance matrix from a CSV file, generates an initial population of routes,
+    and then iteratively evolves the population using tournament selection, order crossover, and mutation.
+    If the population shows stagnation (no improvement for a set number of generations), it is regenerated,
+    preserving the top 10 individuals. The best solution is printed along with its total distance and execution time.
+
+    Returns:
+        float: Total execution time in seconds.
+    """
     start_time = time.time()
     
     # Load the distance matrix
@@ -94,4 +109,5 @@ def run_seq():
 
     return end_time - start_time
 
-# run_seq()
+if __name__ == "__main__":
+    run_seq()

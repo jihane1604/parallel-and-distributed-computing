@@ -36,8 +36,17 @@ def calculate_fitness(route,
 
 def calculate_fitness_chunk(routes_chunk, distance_matrix):
     """
-    Helper function: compute fitness for a chunk of routes.
-    Returns a list of fitness values (negative of the calculated fitness).
+    Helper function: Compute the fitness values for a chunk of routes.
+
+    This helper function calculates the fitness for each route in a provided chunk and returns a list of fitness values.
+    The fitness for each route is computed as the negative total distance, so lower fitness values indicate better routes.
+
+    Parameters:
+        routes_chunk (list of list of int): A list of routes, where each route is represented as a list of node indices.
+        distance_matrix (numpy.ndarray): A 2D array representing distances between nodes.
+
+    Returns:
+        list of float: A list of fitness values corresponding to each route in the chunk.
     """
     # We return negative calculate_fitness so that lower total distances become lower numbers.
     return [-calculate_fitness(route, distance_matrix) for route in routes_chunk]
@@ -63,14 +72,8 @@ def parallel_fitness_evaluation(population, distance_matrix, chunk_size=100):
     #       has a parameter named 'distance_matrix'.
     partial_func = partial(calculate_fitness_chunk, distance_matrix=distance_matrix)
     
-    # with multiprocessing.Pool(processes = 12) as pool:
-    #     # chunk_results = pool.starmap_async(calculate_fitness_chunk, zip(chunks, repeat(distance_matrix))).get()
-    #     chunk_results = pool.map_async(partial_func, chunks).get()
-
-    # Use ProcessPoolExecutor to process the chunks in parallel.
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
-        # executor.map returns results in order corresponding to the input chunks.
-        chunk_results = list(executor.map(partial_func, chunks))
+    with multiprocessing.Pool(processes = 12) as pool:
+        chunk_results = pool.starmap_async(calculate_fitness_chunk, zip(chunks, repeat(distance_matrix))).get()
         
     # Flatten the list of results.
     fitness_values = [fitness for chunk in chunk_results for fitness in chunk]
@@ -79,9 +82,26 @@ def parallel_fitness_evaluation(population, distance_matrix, chunk_size=100):
 def run_ga_on_subpopulation(subpop, distance_matrix, num_generations, stagnation_limit,
                              tournament_size, mutation_rate, num_nodes, num_tournaments):
     """
-    Run the genetic algorithm on a given subpopulation for num_generations.
-    If stagnation occurs, the subpopulation is regenerated while preserving the top 10 individuals.
-    At the end, the best individual from the subpopulation is returned.
+    Run the genetic algorithm on a subpopulation over a number of generations.
+
+    The genetic algorithm is executed on the provided subpopulation for a specified number of generations.
+    During each generation, the fitness of each individual is evaluated, and if no improvement is observed
+    over `stagnation_limit` consecutive generations, the subpopulation is regenerated (preserving the top 10 individuals).
+    Tournament selection is used to select individuals for crossover, followed by order crossover and mutation to generate offspring.
+    The worst individuals are then replaced by mutated offspring. Uniqueness of individuals is maintained throughout the evolution process.
+
+    Parameters:
+        subpop (list of list of int): The subpopulation of routes to evolve.
+        distance_matrix (numpy.ndarray): A 2D array of distances between nodes.
+        num_generations (int): The maximum number of generations to run the genetic algorithm.
+        stagnation_limit (int): The number of generations with no improvement after which the subpopulation is regenerated.
+        tournament_size (int): The number of individuals competing in each tournament selection round.
+        mutation_rate (float): The probability of mutating an offspring.
+        num_nodes (int): The total number of nodes in the route, including the starting node.
+        num_tournaments (int): The number of tournament selection rounds to conduct in each generation.
+
+    Returns:
+        list of int: The best route (individual) found in the subpopulation after evolution.
     """
     best_overall_fitness = 1e6
     stagnation_counter = 0
@@ -213,11 +233,14 @@ def generate_unique_population(population_size, num_nodes, past_routes = []):
 
     Each individual in the population represents a route in a graph, where the first node is fixed (0) and the 
     remaining nodes are a permutation of the other nodes in the graph. This function ensures that all individuals
-    in the population are unique.
+    in the population are unique. 
+    Optionally, it ensures that the generated routes have not been generated previously 
 
     Parameters:
         - population_size (int): The desired size of the population.
         - num_nodes (int): The number of nodes in the graph, including the starting node.
+        - past_routes (list of list of int, optional): A list of routes that have been generated previously.
+            These routes will be excluded from the new population. Default is an empty list.
 
     Returns:
         - list of lists: A list of unique individuals, where each individual is represented as a list of node indices.

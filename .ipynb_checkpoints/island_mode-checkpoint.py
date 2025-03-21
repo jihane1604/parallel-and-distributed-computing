@@ -1,5 +1,5 @@
 """
-This file runs the fitness calculation, tournament selection, offspring crossover, and offspring mutation and undergoes the evolutionary process
+This file implements a parallel (island model) version of the genetic algorithm using multiprocessing.
 """
 
 import numpy as np
@@ -19,6 +19,18 @@ from src.genetic_algorithms_functions import (
 
 
 def run_parallel():
+    """
+    Run a parallel genetic algorithm using an island model approach.
+
+    The function loads a distance matrix from a CSV file, generates an initial population,
+    and splits it into a fixed number of subpopulations. Each subpopulation is evolved in parallel
+    using the run_ga_on_subpopulation function. After processing, the best solution from each island
+    is compared to select the overall best solution. The function prints the best solution from each island,
+    the overall best solution, and execution time.
+
+    Returns:
+        float: Total execution time in seconds.
+    """
     start_time = time.time()
     
     # Load the distance matrix.
