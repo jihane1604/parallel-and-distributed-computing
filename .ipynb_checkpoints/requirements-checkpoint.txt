@@ -1,9 +1,3 @@
-pandas
-jupyter
-seaborn
-scikit-learn
-keras
-tensorflow
-opencv-python
-scikit-image
-tqdm
+pygame==2.5.2
+ipywidgets
+pillow

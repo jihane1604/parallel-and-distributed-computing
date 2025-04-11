@@ -1,9 +1,4 @@
+pygame
+matplotlib 
 pandas
-jupyter
-seaborn
-scikit-learn
-keras
-tensorflow
-opencv-python
-scikit-image
-tqdm
+numpy

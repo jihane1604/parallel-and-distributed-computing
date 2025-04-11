@@ -1,51 +1,41 @@
-from mpi4py import MPI
-import numpy as np
-import time
+"""
+Main entry point for the maze runner game.
+"""
 
-def square(arr):
-    return arr ** 2  # Vectorized NumPy operation
+import argparse
+from src.game import run_game
+from src.explorer import Explorer
 
-start_time = time.time()
-# Initialize MPI
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
 
-start_time = time.time()
+def main():
+    parser = argparse.ArgumentParser(description="Maze Runner Game")
+    parser.add_argument("--type", choices=["random", "static"], default="random",
+                        help="Type of maze to generate (random or static)")
+    parser.add_argument("--width", type=int, default=30,
+                        help="Width of the maze (default: 30, ignored for static mazes)")
+    parser.add_argument("--height", type=int, default=30,
+                        help="Height of the maze (default: 30, ignored for static mazes)")
+    parser.add_argument("--auto", action="store_true",
+                        help="Run automated maze exploration")
+    parser.add_argument("--visualize", action="store_true",
+                        help="Visualize the automated exploration in real-time")
+    
+    args = parser.parse_args()
+    
+    if args.auto:
+        # Create maze and run automated exploration
+        from src.maze import create_maze
+        maze = create_maze(args.width, args.height, args.type)
+        explorer = Explorer(maze, visualize=args.visualize)
+        time_taken, moves = explorer.solve_right_hand()
+        print(f"Maze solved in {time_taken:.2f} seconds")
+        print(f"Number of moves: {len(moves)}")
+        if args.type == "static":
+            print("Note: Width and height arguments were ignored for the static maze")
+    else:
+        # Run the interactive game
+        run_game(maze_type=args.type, width=args.width, height=args.height)
 
-N = int(1e8)  # Compute squares up to 10^8
 
-# Divide workload among processes
-chunk_size = N // size  # Evenly distribute numbers
-remainder = N % size  # Handle remainder if not evenly divisible
-
-# Master process (rank 0) initializes data
-if rank == 0:
-    numbers = np.arange(N, dtype="i")  # Array from 0 to 10^8
-    # Split into chunks for each process
-    chunks = [numbers[i * chunk_size:(i + 1) * chunk_size] for i in range(size)]
-    if remainder:
-        chunks[-1] = np.append(chunks[-1], numbers[-remainder:])  # Add remainder to the last chunk
-else:
-    chunks = None
-
-# Scatter data to all processes
-local_numbers = np.zeros(chunk_size + (remainder if rank == size - 1 else 0), dtype="i")
-comm.Scatter(chunks, local_numbers, root=0)
-
-# Compute the square of local chunk
-local_results = square(local_numbers)
-
-# Gather results at rank 0
-if rank == 0:
-    final_results = np.zeros(N, dtype="i")
-else:
-    final_results = None
-
-comm.Gather(local_results, final_results, root=0)
-
-# Master process prints the results
-if rank == 0:
-    print(f"Computation completed. Last squared number: {final_results[-1]}")
-    end_time = time.time()
-    print(f"Total execution time: {end_time - start_time:.2f} seconds")
+if __name__ == "__main__":
+    main()
