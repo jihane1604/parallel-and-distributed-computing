@@ -3,23 +3,13 @@
 ## Questions
 
 ### Question 1 (10 points)
-Explain how the automated maze explorer works. Your answer should include:
-1. The algorithm used by the explorer
-2. How it handles getting stuck in loops
-3. The backtracking strategy it employs
-4. The statistics it provides at the end of exploration
-
-To answer this question:
-1. Run the explorer both with and without visualization
-2. Observe its behavior in different maze types
-3. Analyze the statistics it provides
-4. Read the source code in `explorer.py` to understand the implementation details
-
-Your answer should demonstrate a clear understanding of:
-- The right-hand rule algorithm
-- The loop detection mechanism
-- The backtracking strategy
-- The performance metrics collected
+- The maze explorer uses the right hand rule algorithm. This algorithm is a classic maze-solving algorithm, which essentially works by placing your hand on the wall and turning right continuously until you can't move forward, then you move left instead. 
+- The function defined in the `explorer.py` file always tries to move right. If it cant go right it moves forward. If that also fails, it turns left. If all options are blocked, it turns around and continues.
+- The algorithm detects getting stuck in a loop by keeping track of the last 3 moves or positions of the explorer in a `dequeue` called `move_history`. Because if it stayed in the same position for the past 3 iterations, then that means there are walls surrounding it on the right, left and front, so it should turn around.
+- If the explorer is stuck, then it backtracks to the last move that had multiple unexplored choices, in order to make another move. This is done by going through the `moves` list in reverse (from most recent to least recent) and creating a backtrack path to the decision point to return to. 
+- One constraint is that this algorithm only wokrs if all the wallas are connected together (i.e. there are no free standing walls), otherwise the explorer might get stuck searching forever.
+- At the end of the algorithm, the explorer prints a summary of the statistics computed including: the time taken to solve the maze, the total number of moves made, the numbe rof backtracking operations made and the average moves per second. 
+- After running the algorithm on the static mode as well as the random mode with different heights and widths, I noticed that the algorithm runs in pretty much 0 seconds and doesn't backtrack. The number of average moves per second is very high because the algorithm is very fast. 
 
 ### Question 2 (30 points)
 Modify the main program to run multiple maze explorers simultaneously. This is because we want to find the best route out of the maze. Your solution should:
