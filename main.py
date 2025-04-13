@@ -27,9 +27,10 @@ def main():
         from src.maze import create_maze
         maze = create_maze(args.width, args.height, args.type)
         explorer = Explorer(maze, visualize=args.visualize)
-        time_taken, moves = explorer.solve_right_hand()
+        time_taken, moves, backtracks = explorer.solve_right_hand()
         print(f"Maze solved in {time_taken:.2f} seconds")
         print(f"Number of moves: {len(moves)}")
+        print(f"Number of backtracks: {backtracks}")
         if args.type == "static":
             print("Note: Width and height arguments were ignored for the static maze")
     else:

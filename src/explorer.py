@@ -267,4 +267,4 @@ class Explorer:
         # Print detailed statistics
         self.print_statistics(time_taken)
             
-        return time_taken, self.moves 
+        return time_taken, self.moves, self.backtrack_count
