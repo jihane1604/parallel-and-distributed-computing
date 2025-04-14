@@ -11,6 +11,7 @@ from queue import PriorityQueue
 import random
 import heapq
 import numpy as np
+import math
 
 class Explorer:
     def __init__(self, maze, visualize: bool = False):
@@ -301,16 +302,19 @@ class Explorer:
 
         # priority queue to store nodes to visit 
         open_set = []
-        # stores the f score and the node
+        # stores the f score and the node using a min heap
         heapq.heappush(open_set, (0, start))
-        # stores the best parent for each node
+        # stores the best parent for each node (to reconstruct the path at the end)
         came_from = {}
         # store the cost from start to each node
         g_score = {start: 0}
-    
+
+        if self.visualize:
+            self.draw_state()
+            
         while open_set:
             # get the node with the lowest f score
-            _, current = heapq.heappop(open_set)
+            score, current = heapq.heappop(open_set)
 
             # reached the end so break
             if current == end:
@@ -331,7 +335,8 @@ class Explorer:
                         came_from[neighbor] = current
                         g_score[neighbor] = tentative_g
                         # use manhattan distance to update f score
-                        f_score = tentative_g + abs(neighbor[0] - end[0]) + abs(neighbor[1] - end[1])
+                        #f_score = tentative_g + abs(neighbor[0] - end[0]) + abs(neighbor[1] - end[1])
+                        f_score = tentative_g + math.sqrt((neighbor[0] - end[0])**2 + (neighbor[1] - end[1])**2)
                         heapq.heappush(open_set, (f_score, neighbor))
                         
         # reconstruct the path from end to start then reverse it
@@ -346,6 +351,10 @@ class Explorer:
         # update the moves
         self.moves = path
 
+        if self.visualize:
+            pygame.time.wait(2000)
+            pygame.quit()
+        
         # set backtrack count to 0 becasue the algorithm doesnt backtrack
         self.backtrack_count = 0
         
@@ -356,208 +365,3 @@ class Explorer:
 
         # return the results
         return time_taken, self.moves, self.backtrack_count
-
-    # helper function for GA
-    def evaluate_path(self, start, end, genome):
-        """
-        A helper function used by the GA solver that evaluates the fitness of a genome by simulating moves through the maze
-        """
-        pos = start
-        visited = [pos]
-        for dx, dy in genome:
-            next_pos = (pos[0]+dx, pos[1]+dy)
-            if 0 <= next_pos[0] < self.maze.width and 0 <= next_pos[1] < self.maze.height and self.maze.grid[next_pos[1]][next_pos[0]] == 0:
-                visited.append(next_pos)
-                pos = next_pos
-                if pos == end:
-                    break
-        score = -abs(pos[0]-end[0]) - abs(pos[1]-end[1])
-        return score, visited
-        
-    # solve the maze using genetic algorithm
-    def solve_ga(self) -> Tuple[float, List[Tuple[int, int]], int, List[Tuple[int, int]]]:
-        """
-        Solve the maze using a Genetic Algorithm.
-        Evolves a population of random path directions toward the goal.
-        """
-        # start time
-        self.start_time = time.time()
-
-        # get the start and endign positions
-        start = self.maze.start_pos
-        end = self.maze.end_pos        
-
-        # generate a random population of 50 individuals
-        population = [random_genome() for _ in range(50)]
-
-        # run for 50 generations
-        for _ in range(50):
-            # for every genome in the population, evaluate its fitness and store it in a list then sort the list in descending order
-            scored = sorted([(self.evaluate_path(start, end, g), g) for g in population], key=lambda x: x[0][0], reverse=True) # explain what this does
-            # select the top 10 best individuals
-            population = [g for (score, g) in scored[:10]]
-
-            # fill the rest of the population
-            while len(population) < 50:
-                # randomly select 2 individuals as parents and cross them over to create offspring
-                p1, p2 = random.sample(population[:10], 2)
-                # select a random crossover point and combine their genes
-                crossover = random.randint(1, len(p1)-1)
-                child = p1[:crossover] + p2[crossover:]
-                # apply utation to the child with a 0.1 mutation rate
-                if random.random() < 0.1:
-                    child[random.randint(0, len(child)-1)] = random.choice([(1,0), (-1,0), (0,1), (0,-1)])
-                # add the new offspring to the population
-                population.append(child)
-
-        # get the best path
-        score, best_path = max([self.evaluate_path(start, end, g) for g in population], key=lambda x: x[0])
-        # update the moves
-        self.moves = best_path
-
-        # set backtrack count to 0 becasue the algorithm doesnt backtrack
-        self.backtrack_count = 0
-        
-        # end time
-        self.end_time = time.time()
-        time_taken = self.end_time - self.start_time
-        #self.print_statistics(self.end_time - self.start_time)
-
-        # return the results
-        return time_taken, self.moves, self.backtrack_count
-
-    # solve the maze using ant colony optitization
-    def solve_aco(self) -> Tuple[float, List[Tuple[int, int]], int, List[Tuple[int, int]]]:
-        """
-        Solve the maze using Ant Colony Optimization.
-        Ants explore probabilistically, guided by pheromone and heuristic.
-        """
-        self.start_time = time.time()
-        start = self.maze.start_pos
-        end = self.maze.end_pos
-        pheromone = np.ones((self.maze.height, self.maze.width))
-        alpha, beta, decay = 1, 2, 0.05
-    
-        best_path = []
-        for _ in range(50):
-            paths = [construct_path() for _ in range(20)]
-            pheromone *= (1 - decay)
-            for path in paths:
-                if path and path[-1] == end:
-                    reward = 1 / len(path)
-                    for x, y in path:
-                        pheromone[y][x] += reward
-            paths = [p for p in paths if p and p[-1] == end]
-            if paths:
-                best_path = min(paths, key=len)
-    
-        self.moves = best_path
-
-        # set backtrack count to 0 becasue the algorithm doesnt backtrack
-        self.backtrack_count = 0
-
-        # end time
-        self.end_time = time.time()
-        time_taken = self.end_time - self.start_time
-        #self.print_statistics(self.end_time - self.start_time)
-        return time_taken, self.moves, self.backtrack_count
-
-    # solve the maze using particle swarm optimization
-    def solve_pso(self) -> Tuple[float, List[Tuple[int, int]], int, List[Tuple[int, int]]]:
-        """
-        Solve the maze using Particle Swarm Optimization.
-        Each path (particle) learns from its own and the swarm’s best experience.
-        """
-        self.start_time = time.time()
-        start = self.maze.start_pos
-        end = self.maze.end_pos
-        
-        swarm = [random_path() for _ in range(30)]
-        personal_best = swarm[:]
-        personal_best_scores = [fitness(p)[0] for p in swarm]
-        global_best = personal_best[personal_best_scores.index(max(personal_best_scores))]
-    
-        for _ in range(50):
-            for i in range(30):
-                new_path = []
-                for j in range(len(swarm[i])):
-                    inertia = swarm[i][j]
-                    cognitive = random.choice(personal_best[i])
-                    social = random.choice(global_best)
-                    new_path.append(random.choice([inertia, cognitive, social]))
-                swarm[i] = new_path
-                new_score, _ = fitness(new_path)
-                if new_score > personal_best_scores[i]:
-                    personal_best[i] = new_path
-                    personal_best_scores[i] = new_score
-            global_best = personal_best[personal_best_scores.index(max(personal_best_scores))]
-    
-        _, best_path = fitness(global_best)
-        self.moves = best_path
-
-        # set backtrack count to 0 becasue the algorithm doesnt backtrack
-        self.backtrack_count = 0
-
-        # end time
-        self.end_time = time.time()
-        time_taken = self.end_time - self.start_time
-        #self.print_statistics(self.end_time - self.start_time)
-        return time_taken, self.moves, self.backtrack_count
-
-
-# helper function for PSO
-def random_path(length=100):
-    return [random.choice([(1,0), (-1,0), (0,1), (0,-1)]) for _ in range(length)]
-
-# helper function for PSO
-def simulate_path(path):
-    pos = start
-    visited = [pos]
-    for dx, dy in path:
-        next_pos = (pos[0]+dx, pos[1]+dy)
-        if 0 <= next_pos[0] < self.maze.width and 0 <= next_pos[1] < self.maze.height and self.maze.grid[next_pos[1]][next_pos[0]] == 0:
-            pos = next_pos
-            visited.append(pos)
-            if pos == end:
-                break
-    return visited
-
-# helper function for PSO
-def fitness(path):
-    visited = simulate_path(path)
-    last = visited[-1]
-    return - (abs(last[0] - end[0]) + abs(last[1] - end[1])), visited
-
-# helper function for ACO
-def construct_path():
-    path = [start]
-    visited = set(path)
-    pos = start
-    while pos != end:
-        neighbors = []
-        probs = []
-        for dx, dy in [(1,0), (-1,0), (0,1), (0,-1)]:
-            next_pos = (pos[0]+dx, pos[1]+dy)
-            if 0<=next_pos[0]<self.maze.width and 0<=next_pos[1]<self.maze.height and self.maze.grid[next_pos[1]][next_pos[0]]==0 and next_pos not in visited:
-                neighbors.append(next_pos)
-                pher = pheromone[next_pos[1]][next_pos[0]] ** alpha
-                heur = 1 / (abs(next_pos[0] - end[0]) + abs(next_pos[1]-end[1]) + 1) ** beta
-                probs.append(pher * heur)
-        if not neighbors:
-            break
-        probs = np.array(probs)
-        probs /= probs.sum()
-        choice = np.random.choice(len(neighbors), p=probs)
-        pos = neighbors[choice]
-        path.append(pos)
-        visited.add(pos)
-    return path
-
-# helper function for GA
-def random_genome(length=100):
-    """
-    A helper function used by the GA solver that generates a random sequence of directions
-    this corresponds to the moves made by the explorer (by default 100 moves)
-    """
-    return [random.choice([(1,0), (-1,0), (0,1), (0,-1)]) for _ in range(length)]
-

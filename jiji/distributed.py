@@ -8,6 +8,7 @@ from mpi4py import MPI
 from src.explorer import Explorer
 from src.maze import create_maze
 from src.game import run_game
+from src.final_visualization import visualize_path
 
 def main():
     # Initialize MPI
@@ -52,9 +53,16 @@ def main():
             0: explorer.solve_right_hand,
             1: explorer.solve_flood_fill,
             2: explorer.solve_astar,
-            3: explorer.solve_ga,
-            #4: explorer.solve_aco,
+            #3: explorer.solve_aco,
+            #4: explorer.solve_ga,
             #5: explorer.solve_pso
+        }
+        # map each function to its name
+        function_names = {
+            explorer.solve_right_hand: "Right Hand",
+            explorer.solve_flood_fill: "Flood Fill",
+            explorer.solve_astar: "A Star",
+            #explorer.solve_aco: "Ant Colony"
         }
 
         # default to right hand if the rank is not in the dictionary
@@ -62,6 +70,9 @@ def main():
         
         time_taken, moves, backtracks = strategy()
         end_time = time.time()
+
+        # visualize the path taken
+        visualize_path(moves, function_names[strategy])
 
         # gather results at rank 0
         results = comm.gather((rank, time_taken, len(moves), moves), root=0)
@@ -78,7 +89,8 @@ def main():
             print("Note: Width and height arguments were ignored for the static maze" if args.type == "static" else "")
             print
             print("==================================\n")
-            print(f"The best performing worker is: {best['worker']} using the function {worker_strategies[best['worker']]}, solved in: {best['moves']} moves \n")
+            print(f"The best performing worker is: {best['worker']} using the {function_names[worker_strategies[best['worker']]]}, solved in: {best['moves']} moves \n")
+            
     else:
         if rank == 0:
             # Only rank 0 can run the interactive game

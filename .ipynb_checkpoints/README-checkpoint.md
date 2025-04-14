@@ -11,24 +11,7 @@
 - At the end of the algorithm, the explorer prints a summary of the statistics computed including: the time taken to solve the maze, the total number of moves made, the number of backtracking operations made and the average moves per second. 
 - After running the algorithm on the static mode as well as the random mode with different heights and widths, I noticed that the algorithm runs in pretty much 0 seconds and doesn't backtrack. The number of average moves per second is very high because the algorithm is very fast. 
 
-### Question 2 (30 points)
-Modify the main program to run multiple maze explorers simultaneously. This is because we want to find the best route out of the maze. Your solution should:
-1. Allow running multiple explorers in parallel
-2. Collect and compare statistics from all explorers
-3. Display a summary of results showing which explorer performed best
-
-*Hints*:
-- To get 20 points, use use multiprocessing.
-- To get 30 points, use MPI4Py on multiple machines.
-- Use Celery and RabbitMQ to distribute the exploration tasks. You will get full marks plus a bonus.
-- Implement a task queue system
-- Do not visualize the exploration, just run it in parallel
-- Store results for comparison
-
-**To answer this question:** 
-1. Study the current explorer implementation
-2. Design a parallel execution system
-4. Create a results comparison system
+### Distribution of solvers
 
 - I created a `distributed.py` file which runs multiple workers across machines using `mpi4py`. This is done by creating the maze in the root process (process 0) and broadcasting it to all the other processes using the `bcast` function.
 - Note that the visualization and the interactive mode can only be played from the root process (though in this assignment I will only be running the automated mode with no visualizations)
@@ -36,6 +19,15 @@ Modify the main program to run multiple maze explorers simultaneously. This is b
 - I implemented multiple algorithms to give each worker in order to properly compare their performance (the algorithms will be explained in detail later). I stored the algorithms in a dictionary for easier acces by the workers.
 - The results returned by each worker are: the time taken, the number of moves, the number of backtracks and the complete path (for later visualizations). After each worker has finished executing the algorithm, the results are then collected in rank 0 using the `gather` function.
 - At the end, root process displays the metrics of each worker, then displays which algorithm performed the best in terms of number of moves along with the algorithm that was used.
+
+### Algorithms used
+
+#### Flood Fill Algorithm
+
+#### A* Algorithm
+
+- A* is an informed search algorithm, which finds the shortest path from a start point to an end point, using both actual movement cost and estimated remaining cost. It does so by maintaining a tree of paths, from the starting node, and extending those paths one edge at a time, based on the cost, until the goal node is reached. Essentially, the algorithm aims to minimize the cost function defined by: `f(n) = g(n) + h(n)` where `g(n)` represents the cost of the path from the start node to the n, and `h(n)` is the heuristic value that estimates the cost of the cheapest path from n to the end node.
+- In the `solve_astar` function, the algotihm uses a priority queue called an `open set`, that is stored in a min heap, to repeatedly select the nodes with the minimum cost to expand. From the current node, the algorithm keeps track of the preceding node, and checks all the valid neighbors (ensures its not a wall and not out of the bounds of the maze). For each neighbor, if the new path to this neighbor is cheaper, it updates the cost and parent pointer, then adds it back to the queue with the updated score. The hueristic value is calculated using the Euclidean distance. Once we have reached the end node, the algorithm stops, then it reconstruct the path by tracing parent nodes from goal to start.
 
 ### Question 3 (10 points)
 Analyze and compare the performance of different maze explorers on the static maze. Your analysis should:
@@ -49,7 +41,7 @@ Analyze and compare the performance of different maze explorers on the static ma
 
 3. What do you notice regarding the performance of the explorers? Explain the results and the observations you made.
 
-- I used 3 different algorithms along with the right hand: flood fill, A*, ACO, GA, PSO
+- I used 3 different algorithms along with the right hand: flood fill, A*
 
 ### Question 4 (20 points)
 Based on your analysis from Question 3, propose and implement enhancements to the maze explorer to overcome its limitations. Your solution should:
@@ -75,13 +67,3 @@ Compare the performance of your enhanced explorer with the original:
 Your answer should include:
 1. Performance comparison results and analysis
 2. Discussion of any trade-offs or new limitations introduced
-
-### Final points 6 (10 points)
-1. Solve the static maze in 150 moves or less to get 10 points.
-2. Solve the static maze in 135 moves or less to get 15 points.
-3. Solve the static maze in 130 moves or less to get 100% in your assignment.
-
-### Bonus points
-1. Fastest solver to get top  10% routes (number of moves)
-2. Finding a solution with no backtrack operations
-3. Least number of moves.

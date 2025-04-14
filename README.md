@@ -26,11 +26,8 @@
 
 #### A* Algorithm
 
-#### Ant Colony Optimization
-
-#### Genetic Algorithm
-
-#### Particle Swarm Optimization
+- A* is an informed search algorithm, which finds the shortest path from a start point to an end point, using both actual movement cost and estimated remaining cost. It does so by maintaining a tree of paths, from the starting node, and extending those paths one edge at a time, based on the cost, until the goal node is reached. Essentially, the algorithm aims to minimize the cost function defined by: `f(n) = g(n) + h(n)` where `g(n)` represents the cost of the path from the start node to the n, and `h(n)` is the heuristic value that estimates the cost of the cheapest path from n to the end node.
+- In the `solve_astar` function, the algotihm uses a priority queue called an `open set`, that is stored in a min heap, to repeatedly select the nodes with the minimum cost to expand. From the current node, the algorithm keeps track of the preceding node, and checks all the valid neighbors (ensures its not a wall and not out of the bounds of the maze). For each neighbor, if the new path to this neighbor is cheaper, it updates the cost and parent pointer, then adds it back to the queue with the updated score. The hueristic value is calculated using the Euclidean distance. Once we have reached the end node, the algorithm stops, then it reconstruct the path by tracing parent nodes from goal to start.
 
 ### Question 3 (10 points)
 Analyze and compare the performance of different maze explorers on the static maze. Your analysis should:
@@ -44,7 +41,7 @@ Analyze and compare the performance of different maze explorers on the static ma
 
 3. What do you notice regarding the performance of the explorers? Explain the results and the observations you made.
 
-- I used 3 different algorithms along with the right hand: flood fill, A*, ACO, GA, PSO
+- I used 3 different algorithms along with the right hand: flood fill, A*
 
 ### Question 4 (20 points)
 Based on your analysis from Question 3, propose and implement enhancements to the maze explorer to overcome its limitations. Your solution should:
