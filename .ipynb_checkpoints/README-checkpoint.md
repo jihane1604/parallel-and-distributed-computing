@@ -106,7 +106,7 @@ Depth-First Search | 0.0003 sec | 129 | 67
 
 
 - Breadth First Search Algorithm
-![Breadth first search](/visuals/Breadth_First_Search_Algorithm_visual.png.png "bfs")
+![Breadth first search](/visuals/Breadth_First_Search_Algorithm_visual.png "bfs")
 
 
 - Depth First Search Algorithm
