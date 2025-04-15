@@ -84,19 +84,23 @@ Breadth-First Search | 0.0015 sec | 127 | 0
 A* Search | 0.0017 sec | 127 | 0
 Depth-First Search | 0.0003 sec | 129 | 67
 
-- [] The right hand algorithm performed the worst in terms of path length with 1278 moves made, which is 10 times more than others. This is expected, as it blindly follows walls and lacks global awareness.
+- The right hand algorithm performed the worst in terms of path length with 1278 moves made, which is 10 times more than others. This is expected, as it blindly follows walls and lacks global awareness.
 
-- [] BFS and A* were tied for the best move count at 127, confirming that both are optimal for unweighted graphs. However, BFS is simpler to understadn and implment and doesnt require heuristic information, but A* would outperform in weighted or larger maps.
+- BFS and A* were tied for the best move count at 127, confirming that both are optimal for unweighted graphs. However, BFS is simpler to understadn and implment and doesnt require heuristic information, but A* would outperform in weighted or larger maps.
 
-- [] DFS also reached the goal but with 129 moves and 67 backtracks, highlighting its tendency to explore deep but inefficient paths. It’s not optimal but still functional and better than the right hand algorithm.
+- DFS also reached the goal but with 129 moves and 67 backtracks, highlighting its tendency to explore deep but inefficient paths. It’s not optimal but still functional and better than the right hand algorithm.
 
-- [] BFS and A* are clearly the most efficient and reliable for structured, unweighted mazes, and I reached under 130 moves so I should get 100% :D
+- BFS and A* are clearly the most efficient and reliable for structured, unweighted mazes, and I reached under 130 moves so I should get 100% :D
 
 - A trade-off in using any of the proposed algorithms over right hand is the introduction of memory usage. Since BFS, DFS and A* all need to store the paths to explore in some sort of data structure (double ended queue, priority queue and stack), theyr equire more memory. This isn't necessarily a problem in this assignment; however, in a more complex problem with many bigger mazes, this might become an issue.
 
 ## Visualization 
-- I visualized the final path taken by each algorithm
-- ![Right hand ](/visuals/A_Star_Algorithm_visual.png "right hand")
-- ![A star](/visuals/Best_First_Search_Algorithm_visual.png "a star")
-- ![Breadth first search](/visuals/Depth_First_Search_Algorithm_visual.png "bfs")
-- ![Depth first search](/visuals/Right_Hand_Algorithm_visual.png "dfs")
+- I visualized the final path taken by each algorithm:
+- Right Hand Algorithm
+![Right hand ](/visuals/A_Star_Algorithm_visual.png "right hand")
+- A Star Algorithm
+![A star](/visuals/Best_First_Search_Algorithm_visual.png "a star")
+- Breadth First Search Algorithm
+![Breadth first search](/visuals/Depth_First_Search_Algorithm_visual.png "bfs")
+- Depth First Search Algorithm
+![Depth first search](/visuals/Right_Hand_Algorithm_visual.png "dfs")

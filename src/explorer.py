@@ -161,8 +161,12 @@ class Explorer:
     # solve the maze using right hand
     def solve_right_hand(self) -> Tuple[float, List[Tuple[int, int]]]:
         """
-        Solve the maze using the right-hand rule algorithm with backtracking.
-        Returns the time taken and the list of moves made.
+        Solve the maze using the right-hand rule algorithm.
+        
+        This strategy follows the wall on the explorer’s right side to navigate through the maze.
+        It may take longer routes and is not guaranteed to find the shortest path. Backtracking
+        is implemented to recover from loops or dead ends. Returns the total time taken,
+        the list of moves made, and the number of backtrack operations.
         """
         self.start_time = time.time()
         
@@ -224,10 +228,13 @@ class Explorer:
     # solve the maze using bfs
     def solve_bfs(self) -> Tuple[float, List[Tuple[int, int]]]:
         """
-        Solve the maze using the breadth first search (BFS) algorithm.
-        Returns the time taken and the list of moves made.
+        Solve the maze using the Breadth-First Search (BFS) algorithm.
+        
+        BFS explores the maze level by level, guaranteeing the shortest path in unweighted mazes.
+        It uses a queue to explore neighbors and a came_from dictionary to reconstruct the path.
+        Returns the total time taken, the shortest path found, and a backtrack count of 0.
         """
-    
+        # start time
         self.start_time = time.time()
         
         # get the starting and ending postitions
@@ -294,8 +301,11 @@ class Explorer:
     # solve the maze using a star
     def solve_astar(self) -> Tuple[float, List[Tuple[int, int]], int, List[Tuple[int, int]]]:
         """
-        Solve the maze using the A* algorithm
-        Returns time taken, moves, backtrack count (always 0), and path
+        Solve the maze using the A* (A-Star) search algorithm.
+        
+        A* uses a priority queue and a heuristic (Euclidean distance) to guide its search
+        toward the goal efficiently. It guarantees the shortest path if the heuristic is admissible.
+        Returns the total time taken, the optimal path, a backtrack count of 0, and the move list.
         """
         # start time
         self.start_time = time.time()
@@ -373,19 +383,25 @@ class Explorer:
     # solve using depth first search
     def solve_dfs(self) -> Tuple[float, List[Tuple[int, int]], int]:
         """
-        Solve the maze using depth-first search (DFS).
-        Returns the time taken, the list of moves made, and backtrack count.
+        Solve the maze using the Depth-First Search (DFS) algorithm.
+        
+        DFS explores as far as possible along each branch before backtracking. It is memory-efficient
+        and fast but does not guarantee the shortest path. Multiple choice points are tracked to
+        approximate the number of backtracks. Returns the time taken, the discovered path,
+        and the number of backtracks.
         """
-        import time
+        # start time
         self.start_time = time.time()
     
         start = self.maze.start_pos
         end = self.maze.end_pos
-    
-        stack = [start]  # DFS uses a stack instead of a queue
+
+        # use stack for lifo
+        stack = [start] 
         visited = set()
         visited.add(start)
-        came_from = {start: None}  # To reconstruct the path
+        # keep track of parent to reconstruct path later
+        came_from = {start: None} 
     
         self.backtrack_count = 0
     
@@ -393,32 +409,35 @@ class Explorer:
             self.draw_state()
     
         while stack:
-            current = stack.pop()  # LIFO: last-in, first-out
+            current = stack.pop()
             self.x, self.y = current
     
             if self.visualize:
                 self.draw_state()
-    
+
+            # stop if we reached the end
             if current == end:
                 break
     
             neighbors = []
+            # explore all neighboring cells
             for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 neighbor = (current[0] + dx, current[1] + dy)
                 x, y = neighbor
-                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and
-                    self.maze.grid[y][x] == 0 and neighbor not in visited):
+                # ensure its a valid path and not visited yet
+                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and self.maze.grid[y][x] == 0 and neighbor not in visited):
                     neighbors.append(neighbor)
-    
+
+            # backtrack when theres multiple options
             if len(neighbors) > 1:
-                self.backtrack_count += 1  # Multiple choices = potential backtrack
+                self.backtrack_count += 1
     
             for neighbor in neighbors:
                 stack.append(neighbor)
                 visited.add(neighbor)
                 came_from[neighbor] = current
     
-        # Reconstruct the path
+        # reconstruct the path
         path = []
         current = end
         while current:
