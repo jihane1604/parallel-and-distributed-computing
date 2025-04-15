@@ -96,11 +96,18 @@ Depth-First Search | 0.0003 sec | 129 | 67
 
 ## Visualization 
 - I visualized the final path taken by each algorithm:
+
 - Right Hand Algorithm
-![Right hand ](/visuals/A_Star_Algorithm_visual.png "right hand")
+![Right hand ](/visuals/Right_Hand_Algorithm_visual.png "right hand")
+
+
 - A Star Algorithm
-![A star](/visuals/Best_First_Search_Algorithm_visual.png "a star")
+![A star](/visuals/A_Star_Algorithm_visual.png "a star")
+
+
 - Breadth First Search Algorithm
-![Breadth first search](/visuals/Depth_First_Search_Algorithm_visual.png "bfs")
+![Breadth first search](/visuals/Breadth_First_Search_Algorithm_visual.png.png "bfs")
+
+
 - Depth First Search Algorithm
-![Depth first search](/visuals/Right_Hand_Algorithm_visual.png "dfs")
+![Depth first search](/visuals/Depth_First_Search_Algorithm_visual.png "dfs")
