@@ -77,4 +77,4 @@ def visualize_path(path, name):
     plt.title(f"Maze Path Traversd by {name} Algorithm")
     plt.axis("off")
     plt.savefig(f"visuals/{name} Algorithm visual")
-    plt.show()
+    # plt.show()

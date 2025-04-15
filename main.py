@@ -5,6 +5,7 @@ Main entry point for the maze runner game.
 import argparse
 from src.game import run_game
 from src.explorer import Explorer
+from src.final_visualization import visualize_path
 
 
 def main():
@@ -27,10 +28,12 @@ def main():
         from src.maze import create_maze
         maze = create_maze(args.width, args.height, args.type)
         explorer = Explorer(maze, visualize=args.visualize)
-        time_taken, moves, backtracks = explorer.solve_right_hand()
+        time_taken, moves, backtracks = explorer.solve_dfs()
         print(f"Maze solved in {time_taken:.2f} seconds")
         print(f"Number of moves: {len(moves)}")
         print(f"Number of backtracks: {backtracks}")
+        # visualize the path taken
+        visualize_path(moves, "Depth First Search")
         if args.type == "static":
             print("Note: Width and height arguments were ignored for the static maze")
     else:

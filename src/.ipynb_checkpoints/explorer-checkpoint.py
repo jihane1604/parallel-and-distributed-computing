@@ -7,6 +7,12 @@ import pygame
 from typing import Tuple, List, Optional, Deque
 from collections import deque
 from .constants import BLUE, WHITE, CELL_SIZE, WINDOW_SIZE
+from queue import PriorityQueue
+import random
+import heapq
+import numpy as np
+import math
+from typing import Tuple, List
 
 class Explorer:
     def __init__(self, maze, visualize: bool = False):
@@ -152,62 +158,7 @@ class Explorer:
         print(f"Average moves per second: {len(self.moves)/time_taken:.2f}")
         print("==================================\n")
 
-    def solve(self) -> Tuple[float, List[Tuple[int, int]]]:
-        """
-        Solve the maze using the flood fill algorithm.
-        Returns the time taken and the list of moves made.
-        """
-    
-        self.start_time = time.time()
-        start = self.maze.start_pos
-        end = self.maze.end_pos
-        queue = deque([start])
-        visited = set()
-        visited.add(start)
-        came_from = {start: None}
-    
-        if self.visualize:
-            self.draw_state()
-    
-        while queue:
-            current = queue.popleft()
-            self.x, self.y = current
-    
-            if self.visualize:
-                self.draw_state()
-    
-            if current == end:
-                break
-    
-            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                neighbor = (current[0] + dx, current[1] + dy)
-                x, y = neighbor
-                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and 
-                    self.maze.grid[y][x] == 0 and neighbor not in visited):
-                    queue.append(neighbor)
-                    visited.add(neighbor)
-                    came_from[neighbor] = current
-    
-        # Reconstruct path
-        path = []
-        current = end
-        while current:
-            path.append(current)
-            current = came_from[current]
-        path.reverse()
-    
-        self.moves = path
-        self.end_time = time.time()
-    
-        if self.visualize:
-            pygame.time.wait(2000)
-            pygame.quit()
-    
-        time_taken = self.end_time - self.start_time
-        self.print_statistics(time_taken)
-        return time_taken, self.moves
-
-
+    # solve the maze using right hand
     def solve_right_hand(self) -> Tuple[float, List[Tuple[int, int]]]:
         """
         Solve the maze using the right-hand rule algorithm with backtracking.
@@ -256,6 +207,7 @@ class Explorer:
                             self.move_forward()
                             visited.add((self.x, self.y))
 
+        # end time
         self.end_time = time.time()
         time_taken = self.end_time - self.start_time
         
@@ -265,6 +217,222 @@ class Explorer:
             pygame.quit()
         
         # Print detailed statistics
-        self.print_statistics(time_taken)
+        #self.print_statistics(time_taken)
             
+        return time_taken, self.moves, self.backtrack_count
+
+    # solve the maze using bfs
+    def solve_bfs(self) -> Tuple[float, List[Tuple[int, int]]]:
+        """
+        Solve the maze using the breadth first search (BFS) algorithm.
+        Returns the time taken and the list of moves made.
+        """
+    
+        self.start_time = time.time()
+        
+        # get the starting and ending postitions
+        start = self.maze.start_pos
+        end = self.maze.end_pos
+
+        # get a queue with all the moves made
+        queue = deque([start])
+
+        # create a set of visited nodes
+        visited = set()
+        visited.add(start)
+        # keep track of parent node for path recunstruction
+        came_from = {start: None}
+    
+        if self.visualize:
+            self.draw_state()
+
+        # iterate while the queue is not empty
+        while queue:
+            current = queue.popleft()
+            self.x, self.y = current
+    
+            if self.visualize:
+                self.draw_state()
+
+            # stop if we reached the end
+            if current == end:
+                break
+
+            # check every neighboring node
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                neighbor = (current[0] + dx, current[1] + dy)
+                x, y = neighbor
+                # ensure its a valid path
+                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and self.maze.grid[y][x] == 0 and neighbor not in visited):
+                    queue.append(neighbor)
+                    visited.add(neighbor)
+                    came_from[neighbor] = current
+    
+        # Reconstruct path
+        path = []
+        current = end
+        while current:
+            path.append(current)
+            current = came_from[current]
+        path.reverse()
+    
+        self.moves = path
+        
+        # end time
+        self.end_time = time.time()
+    
+        if self.visualize:
+            pygame.time.wait(2000)
+            pygame.quit()
+
+        # set backtrack count to 0 becasue the algorithm doesnt backtrack
+        self.backtrack_count = 0
+        time_taken = self.end_time - self.start_time
+        #self.print_statistics(time_taken)
+        return time_taken, self.moves, self.backtrack_count
+
+    # solve the maze using a star
+    def solve_astar(self) -> Tuple[float, List[Tuple[int, int]], int, List[Tuple[int, int]]]:
+        """
+        Solve the maze using the A* algorithm
+        Returns time taken, moves, backtrack count (always 0), and path
+        """
+        # start time
+        self.start_time = time.time()
+
+        # get the start and end positions
+        start = self.maze.start_pos
+        end = self.maze.end_pos
+
+        # priority queue to store nodes to visit 
+        open_set = []
+        # stores the f score and the node using a min heap
+        heapq.heappush(open_set, (0, start))
+        # stores the best parent for each node (to reconstruct the path at the end)
+        came_from = {}
+        # store the cost from start to each node
+        g_score = {start: 0}
+
+        if self.visualize:
+            self.draw_state()
+            
+        while open_set:
+            # get the node with the lowest f score
+            score, current = heapq.heappop(open_set)
+
+            # reached the end so break
+            if current == end:
+                break
+
+            # check all directions (neighbors)
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                neighbor = (current[0] + dx, current[1] + dy)
+                x, y = neighbor
+                
+                # ensure its not a wall or out of bounds
+                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and self.maze.grid[y][x] == 0):
+                    # update the cost to get to the neighbor
+                    tentative_g = g_score[current] + 1
+
+                    # update the score if its better than the old score
+                    if neighbor not in g_score or tentative_g < g_score[neighbor]:
+                        came_from[neighbor] = current
+                        g_score[neighbor] = tentative_g
+                        # use manhattan distance to update f score
+                        #f_score = tentative_g + abs(neighbor[0] - end[0]) + abs(neighbor[1] - end[1])
+                        f_score = tentative_g + math.sqrt((neighbor[0] - end[0])**2 + (neighbor[1] - end[1])**2)
+                        heapq.heappush(open_set, (f_score, neighbor))
+                        
+        # reconstruct the path from end to start then reverse it
+        path = []
+        current = end
+        while current in came_from:
+            path.append(current)
+            current = came_from[current]
+        path.append(start)
+        path.reverse()
+
+        # update the moves
+        self.moves = path
+
+        if self.visualize:
+            pygame.time.wait(2000)
+            pygame.quit()
+        
+        # set backtrack count to 0 becasue the algorithm doesnt backtrack
+        self.backtrack_count = 0
+        
+        # end time
+        self.end_time = time.time()
+        time_taken = self.end_time - self.start_time
+        #self.print_statistics(self.end_time - self.start_time)
+
+        # return the results
+        return time_taken, self.moves, self.backtrack_count
+
+    # solve using depth first search
+    def solve_dfs(self) -> Tuple[float, List[Tuple[int, int]], int]:
+        """
+        Solve the maze using depth-first search (DFS).
+        Returns the time taken, the list of moves made, and backtrack count.
+        """
+        import time
+        self.start_time = time.time()
+    
+        start = self.maze.start_pos
+        end = self.maze.end_pos
+    
+        stack = [start]  # DFS uses a stack instead of a queue
+        visited = set()
+        visited.add(start)
+        came_from = {start: None}  # To reconstruct the path
+    
+        self.backtrack_count = 0
+    
+        if self.visualize:
+            self.draw_state()
+    
+        while stack:
+            current = stack.pop()  # LIFO: last-in, first-out
+            self.x, self.y = current
+    
+            if self.visualize:
+                self.draw_state()
+    
+            if current == end:
+                break
+    
+            neighbors = []
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                neighbor = (current[0] + dx, current[1] + dy)
+                x, y = neighbor
+                if (0 <= x < self.maze.width and 0 <= y < self.maze.height and
+                    self.maze.grid[y][x] == 0 and neighbor not in visited):
+                    neighbors.append(neighbor)
+    
+            if len(neighbors) > 1:
+                self.backtrack_count += 1  # Multiple choices = potential backtrack
+    
+            for neighbor in neighbors:
+                stack.append(neighbor)
+                visited.add(neighbor)
+                came_from[neighbor] = current
+    
+        # Reconstruct the path
+        path = []
+        current = end
+        while current:
+            path.append(current)
+            current = came_from.get(current)
+        path.reverse()
+    
+        self.moves = path
+        self.end_time = time.time()
+    
+        if self.visualize:
+            import pygame
+            pygame.time.wait(2000)
+            pygame.quit()
+    
+        time_taken = self.end_time - self.start_time
         return time_taken, self.moves, self.backtrack_count
